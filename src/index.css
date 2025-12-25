@@ -1,0 +1,470 @@
+/* 
+  ZOLA CSS ARCHITECTURE
+  A variable-driven, mobile-first design system with a glassmorphism aesthetic.
+*/
+
+:root {
+  /* --- Colors --- */
+  --bg-dark: #020617;
+  --bg-light: #1e293b;
+  --bg-radial: radial-gradient(circle at 50% 100%, var(--bg-light) 0%, var(--bg-dark) 100%);
+  
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --accent: #fbbf24;
+  
+  /* --- Glassmorphism --- */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-focus: rgba(255, 255, 255, 0.15);
+  --glass-blur: blur(10px);
+  --glass-blur-heavy: blur(15px);
+  
+  /* --- Nebula Accents --- */
+  --nebula-1: rgba(96, 165, 250, 0.08);
+  --nebula-2: rgba(167, 139, 250, 0.08);
+  
+  /* --- Sizing & Spacing --- */
+  --container-max-width: 340px;
+  --modal-max-width: 400px;
+  --nav-height: 80px;
+  --border-radius-lg: 24px;
+  --border-radius-md: 16px;
+  --border-radius-sm: 12px;
+  --border-radius-full: 50px;
+  
+  /* --- Typography --- */
+  --font-main: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* 2. Global Reset */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-radial);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* 3. Layout Components */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100vh;
+}
+
+h1, h2 { 
+  font-weight: 300; 
+  letter-spacing: -1px; 
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+/* 4. Hero Section */
+.hero-logo {
+  font-size: 5rem;
+  margin-bottom: 1rem;
+  letter-spacing: -3px;
+}
+
+.tutorial-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 1.5rem 0;
+  text-align: left;
+  width: 100%;
+  max-width: var(--container-max-width);
+  position: relative;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  position: relative;
+  z-index: 2;
+}
+
+.step span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+/* Vertical line connecting steps */
+.tutorial-steps::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: var(--glass-border);
+  z-index: 1;
+}
+
+/* 5. Forms & Inputs */
+input, textarea, select, button {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 15px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--glass-border);
+  font-family: inherit;
+  font-size: 1rem;
+  box-sizing: border-box;
+  backdrop-filter: var(--glass-blur);
+  transition: all 0.2s ease;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+input, textarea, select {
+  background: var(--glass-bg);
+  color: white;
+  max-width: var(--container-max-width);
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  background: var(--glass-focus);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+button {
+  background: var(--accent);
+  color: var(--bg-dark);
+  font-weight: 700;
+  cursor: pointer;
+  max-width: var(--container-max-width);
+  border: none;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(251, 191, 36, 0.4);
+  filter: brightness(1.1);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 6. Navigation */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.brand {
+  font-weight: 300;
+  font-size: 1.8rem;
+  color: white;
+  pointer-events: auto;
+  text-decoration: none;
+  letter-spacing: -1px;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.sky-title {
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 500;
+  text-align: center;
+  flex-grow: 1;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 20px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* 7. Sky Interactive Elements */
+.sky-container {
+  position: fixed;
+  top: var(--nav-height);
+  bottom: 100px;
+  left: 0;
+  right: 0;
+  background: transparent; 
+  z-index: 10;
+  overflow: hidden;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 20;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.star:hover {
+  transform: scale(2) !important; 
+  z-index: 30;
+}
+
+/* 8. Star Styling Selectors */
+.style-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--glass-bg);
+  padding: 12px 20px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--glass-border);
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  flex-wrap: nowrap;
+  box-sizing: border-box;
+}
+
+.style-option, .emoji-option, .shape-option {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  font-size: 1.2rem;
+  box-sizing: border-box;
+}
+
+.style-option:hover, .emoji-option:hover, .shape-option:hover { 
+  transform: scale(1.1); 
+}
+
+.style-option.selected, .emoji-option.selected, .shape-option.selected { 
+  transform: scale(1.1); 
+  filter: brightness(1.3) drop-shadow(0 0 8px rgba(255,255,255,0.3));
+}
+
+/* Custom color styles for stars */
+.opt-classic { background: #ffffff !important; }
+.opt-gold { background: #fbbf24 !important; }
+.opt-blue { background: #60a5fa !important; }
+.opt-fire { background: #f87171 !important; }
+.opt-green { background: #4ade80 !important; }
+.opt-purple { background: #a78bfa !important; }
+
+/* 9. Modal UI */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.glass-card {
+  background: rgba(20, 20, 30, 0.85);
+  border: 1px solid var(--glass-border);
+  padding: 30px;
+  border-radius: var(--border-radius-lg);
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  color: white;
+  box-sizing: border-box;
+  backdrop-filter: var(--glass-blur-heavy);
+}
+
+.modal {
+  width: 100%;
+  max-width: var(--modal-max-width);
+  position: relative;
+}
+
+/* 10. Controls & Buttons */
+.share-btn {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  color: white;
+  padding: 10px 16px;
+  border-radius: var(--border-radius-full);
+  z-index: 50;
+  width: auto;
+  margin: 0;
+  transition: all 0.2s ease;
+  font-size: 0.8rem;
+}
+
+button.share-btn:hover {
+  background: var(--glass-focus);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+}
+
+.pagination-btn {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--glass-focus);
+  transform: translateY(-2px);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.story-btn {
+  background: var(--accent);
+  color: var(--bg-dark);
+  font-weight: 700;
+  border: none;
+  padding: 12px;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bottom-controls {
+  pointer-events: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* 11. Mobile Responsiveness */
+@media (max-width: 600px) {
+  .brand { font-size: 1.4rem; }
+  .sky-title { font-size: 1.1rem; padding: 0 10px; }
+  .container { padding: 20px 15px; }
+  .hero-logo { font-size: 3.5rem; }
+  
+  /* Disable blur on mobile for better performance */
+  input, textarea, select, .glass-card, .share-btn, .pagination-btn, .bottom-controls {
+    backdrop-filter: none !important;
+    background: rgba(30, 41, 59, 0.95) !important;
+  }
+
+  button {
+    backdrop-filter: none !important;
+  }
+
+  .bottom-controls {
+    gap: 8px !important;
+    padding: 10px 16px;
+    border-radius: var(--border-radius-full);
+    border: 1px solid var(--glass-border);
+    width: calc(100% - 40px) !important;
+    max-width: 400px;
+    justify-content: space-between;
+    box-sizing: border-box;
+  }
+
+  .bottom-controls .share-btn {
+    padding: 10px 12px;
+    font-size: 0.75rem;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* 12. Utilities & Animations */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-light);
+  color: var(--text-primary);
+  padding: 12px 24px;
+  border-radius: var(--border-radius-full);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  z-index: 300;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.refresh-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(20, 20, 30, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--accent);
+  padding: 30px;
+  border-radius: 20px;
+  z-index: 200;
+  text-align: center;
+}
+
+/* Background Stars Background */
+.star-bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: hidden; }
+.bg-star-decoration { position: absolute; background: white; border-radius: 50%; animation: bg-drift linear infinite, bg-twinkle ease-in-out infinite alternate; }
+
+@keyframes bg-drift { from { transform: translateY(0px); } to { transform: translateY(-100px); } }
+@keyframes bg-twinkle { 0% { opacity: 0.2; } 100% { opacity: 0.6; } }
