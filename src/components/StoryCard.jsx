@@ -167,6 +167,50 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier },
     );
   }
 
+  if (type === 'link-only') {
+    return (
+      <div ref={ref} style={canvasStyle}>
+        <div style={containerStyle}>
+          {/* Top Branding */}
+          <div style={{ textAlign: 'center' }}>
+            <Logo size={140} />
+            <p style={{ marginTop: '20px', letterSpacing: '10px', opacity: 0.5, textTransform: 'uppercase', fontSize: '1.2rem' }}>New Year 2026</p>
+          </div>
+
+          {/* Main Hero Card */}
+          <div style={{
+            width: '100%',
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '2px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '60px',
+            padding: '80px 40px',
+            textAlign: 'center',
+            boxShadow: '0 40px 100px rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(30px)'
+          }}>
+            <p style={{ fontSize: '1.4rem', color: '#fbbf24', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '20px' }}>Join My Galaxy</p>
+            <h2 style={{ fontSize: '4rem', fontWeight: 300, marginBottom: '30px', lineHeight: '1.1' }}>Add a Star to my Sky</h2>
+            <p style={{ fontSize: '1.2rem', color: '#94a3b8', lineHeight: '1.6' }}>Send me an anonymous message, wish, or emoji for the new year. ✨</p>
+          </div>
+
+          {/* Bottom Area */}
+          <div style={{ textAlign: 'center', width: '100%' }}>
+            <div style={{ 
+              border: '4px dashed #fbbf24', 
+              borderRadius: '40px', 
+              padding: '60px 40px', 
+              marginBottom: '30px',
+              background: 'rgba(251, 191, 36, 0.05)'
+            }}>
+              <p style={{ fontSize: '1.8rem', letterSpacing: '2px', color: '#fbbf24', textTransform: 'uppercase', fontWeight: 700 }}>Tap to Add a Star</p>
+            </div>
+            <p style={{ fontSize: '1.4rem', color: 'white', fontWeight: 500 }}>~ {creatorName}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return null;
 });
 

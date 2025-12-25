@@ -41,6 +41,7 @@ export default function Sky() {
     const skyRef = useRef(null)
     const skyCardRef = useRef(null)
     const starCardRef = useRef(null)
+    const linkCardRef = useRef(null)
     const chimeRef = useRef(null)
     const jsConfettiRef = useRef(null)
     const lastTriggeredStarId = useRef(null)
@@ -131,33 +132,39 @@ export default function Sky() {
     }, [slug])
 
     const handleShareLink = async () => {
+        if (sharing) return
         const url = `${window.location.origin}/send/${slug}`
-        const shareData = {
-            title: 'ZOLA',
-            text: `Check out ${creatorName}'s sky on ZOLA! ✨`,
-            url: url
-        }
-
+        
+        // Always copy link first
         try {
-            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-                await navigator.share(shareData)
-            } else {
-                throw new Error('Native share not available')
-            }
-        } catch (err) {
-            if (err.name === 'AbortError') return
+            await navigator.clipboard.writeText(url)
+        } catch (err) {}
+
+        if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            setSharing(true)
             try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(url)
-                    showToast("Link copied! 🔗")
-                } else { throw new Error() }
-            } catch (err2) {
-                const textArea = document.createElement("textarea")
-                textArea.value = url; document.body.appendChild(textArea); textArea.select()
-                try { document.execCommand('copy'); showToast("Link copied! 🔗"); } 
-                catch (err3) { showToast("Could not copy link"); }
-                document.body.removeChild(textArea)
+                const blob = await toBlob(linkCardRef.current, { cacheBust: true, pixelRatio: 1 })
+                const file = new File([blob], `zola-invite.png`, { type: 'image/png' })
+                
+                await navigator.share({
+                    files: [file],
+                    title: 'ZOLA',
+                    text: `Add a star to my sky! ✨`,
+                    url: url
+                })
+                showToast("Link copied & card shared! ✨")
+            } catch (err) {
+                // Fallback to simple share if image fails
+                await navigator.share({
+                    title: 'ZOLA',
+                    text: `Check out my sky on ZOLA! ✨`,
+                    url: url
+                })
+            } finally {
+                setSharing(false)
             }
+        } else {
+            showToast("Link copied! 🔗")
         }
     }
 
@@ -409,6 +416,7 @@ export default function Sky() {
 
             {selectedStar && <StoryCard ref={starCardRef} type="star" data={selectedStar} creatorName={creatorName} skyTier={skyTier} />}
             {allStars.length > 0 && <StoryCard ref={skyCardRef} type="constellation" data={displayedStars} creatorName={creatorName} lines={lines} skyTier={skyTier} />}
+            <StoryCard ref={linkCardRef} type="link-only" creatorName={creatorName} />
             {needsRefresh && (<div className="refresh-indicator"><p>Size changed. Please refresh.</p><button onClick={() => window.location.reload()}>Refresh</button></div>)}
         </div>
     )
