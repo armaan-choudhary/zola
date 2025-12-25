@@ -21,24 +21,23 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier },
   const canvasStyle = {
     width: '1080px',
     height: '1920px',
+    position: 'fixed',
+    left: '-2000px',
+    top: '0',
+    zIndex: '-1000',
+    pointerEvents: 'none',
+    background: '#020617',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     color: 'white',
     fontFamily: "'Space Grotesk', sans-serif",
-    position: 'fixed',
-    left: '-5000px', // Far off-screen but still 'rendered'
-    top: '0',
-    zIndex: '-1000',
-    pointerEvents: 'none',
-    background: 'radial-gradient(circle at 50% 100%, #1e293b 0%, #020617 100%)',
-    opacity: 0
   };
 
   const containerStyle = {
-    width: '100%',
-    height: '100%',
+    width: '1080px',
+    height: '1920px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -46,14 +45,36 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier },
     padding: '120px 60px',
     boxSizing: 'border-box',
     position: 'relative',
+    background: 'radial-gradient(circle at 50% 100%, #1e293b 0%, #020617 100%)',
     overflow: 'hidden'
   };
+
+  const backgroundStars = [
+    { x: 10, y: 15, size: 4 }, { x: 85, y: 10, size: 3 }, { x: 30, y: 40, size: 5 },
+    { x: 70, y: 60, size: 3 }, { x: 20, y: 80, size: 4 }, { x: 90, y: 90, size: 5 },
+    { x: 50, y: 20, size: 3 }, { x: 15, y: 55, size: 4 }, { x: 80, y: 35, size: 3 },
+    { x: 45, y: 75, size: 5 }, { x: 5, y: 95, size: 3 }, { x: 95, y: 5, size: 4 }
+  ];
 
   if (type === 'star') {
     const starColor = getStarColor(data.style);
     return (
       <div ref={ref} style={canvasStyle}>
         <div style={containerStyle}>
+          {/* Background Stars Decoration */}
+          {backgroundStars.map((s, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              left: `${s.x}%`,
+              top: `${s.y}%`,
+              width: `${s.size}px`,
+              height: `${s.size}px`,
+              background: 'white',
+              borderRadius: '50%',
+              opacity: 0.2
+            }} />
+          ))}
+
           {/* Top Branding */}
           <div style={{ textAlign: 'center' }}>
             <Logo size={140} />
@@ -114,6 +135,20 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier },
     return (
       <div ref={ref} style={canvasStyle}>
         <div style={containerStyle}>
+          {/* Background Stars Decoration */}
+          {backgroundStars.map((s, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              left: `${s.x}%`,
+              top: `${s.y}%`,
+              width: `${s.size}px`,
+              height: `${s.size}px`,
+              background: 'white',
+              borderRadius: '50%',
+              opacity: 0.2
+            }} />
+          ))}
+
           <div style={{ textAlign: 'center' }}>
             <Logo size={140} />
             <p style={{ marginTop: '20px', letterSpacing: '10px', opacity: 0.5, textTransform: 'uppercase', fontSize: '1.2rem' }}>The Full Constellation</p>
@@ -171,6 +206,20 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier },
     return (
       <div ref={ref} style={canvasStyle}>
         <div style={containerStyle}>
+          {/* Background Stars Decoration */}
+          {backgroundStars.map((s, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              left: `${s.x}%`,
+              top: `${s.y}%`,
+              width: `${s.size}px`,
+              height: `${s.size}px`,
+              background: 'white',
+              borderRadius: '50%',
+              opacity: 0.2
+            }} />
+          ))}
+
           {/* Top Branding */}
           <div style={{ textAlign: 'center' }}>
             <Logo size={140} />

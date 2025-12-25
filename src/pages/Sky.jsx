@@ -143,12 +143,14 @@ export default function Sky() {
             setSharing(true)
             try {
                 // Wait a bit to ensure fonts and layout are ready
-                await new Promise(r => setTimeout(r, 150))
+                await new Promise(r => setTimeout(r, 300))
                 
                 const blob = await toBlob(linkCardRef.current, { 
                     cacheBust: true, 
                     pixelRatio: 1,
-                    backgroundColor: '#020617'
+                    backgroundColor: '#020617',
+                    width: 1080,
+                    height: 1920
                 })
                 
                 if (!blob) throw new Error("Blob generation failed")
@@ -194,13 +196,15 @@ export default function Sky() {
 
         try {
             // Small delay for stability
-            await new Promise(r => setTimeout(r, 150))
+            await new Promise(r => setTimeout(r, 300))
 
             if (mode === 'download') {
                 const dataUrl = await toPng(ref.current, { 
                     cacheBust: true, 
                     pixelRatio: 1,
-                    backgroundColor: '#020617'
+                    backgroundColor: '#020617',
+                    width: 1080,
+                    height: 1920
                 })
                 const link = document.createElement('a')
                 link.download = `zola-${type}.png`; link.href = dataUrl; link.click()
@@ -209,7 +213,6 @@ export default function Sky() {
                 // Share mode
                 if (navigator.share) {
                     try {
-                        // SMART CLIPBOARD HACK: Copy link so user can paste as sticker
                         try {
                             await navigator.clipboard.writeText(url)
                             showToast("Link copied! Paste it as a sticker in your story ✨")
@@ -218,7 +221,9 @@ export default function Sky() {
                         const blob = await toBlob(ref.current, { 
                             cacheBust: true, 
                             pixelRatio: 1,
-                            backgroundColor: '#020617'
+                            backgroundColor: '#020617',
+                            width: 1080,
+                            height: 1920
                         })
                         
                         if (!blob) throw new Error("Blob generation failed")
