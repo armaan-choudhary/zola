@@ -451,7 +451,7 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier, t
                 background: 'rgba(251, 191, 36, 0.05)',
                 marginBottom: '40px'
             }}>
-              <p style={{ fontSize: '1.4rem', color: GOLD, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '2px', margin: 0 }}>Tap to Add a Star</p>
+              <p style={{ fontSize: '1.4rem', color: GOLD, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '2px', margin: 0 }}>Add Link Here</p>
             </div>
 
             <div style={{ flex: 1 }} />
