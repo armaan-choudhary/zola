@@ -1,4 +1,4 @@
-# Zola Project Context (Final Build)
+# Zola Project Context (Final Polish)
 
 Zola is an interactive New Year application designed for users to share and receive anonymous messages through a celestial, constellation-themed interface.
 
@@ -9,14 +9,14 @@ Zola is an interactive New Year application designed for users to share and rece
 
 ## Key Features
 - **Interactive Sky View:** Pagination (12 stars per page), drifting background stars, shooting stars, and clickable interactive stars.
-- **Brand Identity:** Custom "Z" constellation logo integrated into the "Zola" wordmark.
+- **Unified Design System:** The in-app modals and shared story cards share identical styling, including background stars, tier-based vignettes, and bold "Zola" branding.
 - **Global Social Proof:** A real-time global counter on the home page tracking "how many stars the universe is holding."
 - **Message Locking:** Stars are locked and unreadable until New Year's Day (January 1, 2026).
-- **Customizable Stars:** Senders can choose messages, emojis, colors, and shapes (Circle, Square, Triangle, Star, Heart, Gem).
-- **Robust Sharing:** 
-    - **Native Sharing:** Uses the Web Share API (`toBlob`) for mobile devices to share images directly to stories.
-    - **Direct Download:** Dedicated download buttons for desktop users or manual sharing.
-    - **Story Card Generation:** High-quality PNG generation using `html-to-image`.
+- **Customizable Stars:** Senders can choose messages, emojis, colors, and shapes.
+- **Pro Social Loop (Instagram Optimized):** 
+    - **Invite Cards:** Sharing a link on mobile generates a high-impact "Add a Star" invite card.
+    - **Sticker Hack:** The app automatically copies the sky link to the clipboard during sharing, prompting users to paste it as a link sticker on their stories.
+    - **Natural Aspect Ratio:** Shared images are tightly cropped to the modal itself for a clean, consistent look across devices.
 - **UI/UX Polish:**
     - Centered, mobile-first layouts using `100dvh` for perfect vertical alignment.
     - Minimalist "glassmorphism" aesthetic with atmospheric nebula background effects.
@@ -25,6 +25,7 @@ Zola is an interactive New Year application designed for users to share and rece
 ## Tech Stack
 - **Framework:** React (Vite)
 - **Backend/Database:** Supabase (PostgreSQL + Realtime)
+- **Analytics:** Vercel Analytics & Vercel Speed Insights
 - **Animations:** Framer Motion, JS Confetti
 - **Styling:** CSS Variables, Glassmorphism, Mobile-first
 - **Visual Effects:** React Snowfall, Custom Nebula Gradients
@@ -32,9 +33,9 @@ Zola is an interactive New Year application designed for users to share and rece
 
 ## Architecture & Structure
 - `/src/components/Logo.jsx`: The core branding component featuring a twinkly SVG constellation.
-- `/src/pages/`: `Home.jsx` (Hero + Global Counter), `Sky.jsx` (Interactive Sky), `Send.jsx` (Wish form).
-- `/src/Star.jsx`: Individual interactive star logic with memoized twinkle and size properties.
-- `/src/index.css`: Refactored, variable-driven CSS containing the entire design system.
+- `/src/components/StoryCard.jsx`: Unified component for generating shareable assets (Star, Constellation, and Link Invite).
+- `/src/pages/`: `Home.jsx` (Hero + Global Counter), `Sky.jsx` (Interactive Sky + Star Modal), `Send.jsx` (Wish form).
+- `/src/index.css`: Refactored, variable-driven CSS design system.
 
 ## Data Model
 - **Skies Table:** `id`, `slug` (unique), `creator_name`, `created_at`.
@@ -42,5 +43,5 @@ Zola is an interactive New Year application designed for users to share and rece
 
 ## Final Logic Polish
 - **Vertical Centering:** Uses `100dvh` to ensure centering works across all mobile browsers regardless of dynamic toolbars.
-- **Sharing Separation:** Explicit separation between "Share to Story" (Native API) and "Download" to prevent UX confusion on non-supported browsers.
-- **Performance:** Extensive use of `useMemo` in `Star` components to prevent flickering during sky-wide re-renders.
+- **Image Generation:** Uses `html-to-image` (`toBlob`) with an explicit processing delay and high `pixelRatio` for crisp shared assets.
+- **Deployment:** Configured with `vercel.json` for SPA routing and native analytics.

@@ -46,7 +46,7 @@ export default function Sky() {
     const jsConfettiRef = useRef(null)
     const lastTriggeredStarId = useRef(null)
 
-    const NEW_YEAR = new Date('2026-01-01T00:00:00')
+    const NEW_YEAR = new Date('2025-01-01T00:00:00')
     const isRevealed = new Date() >= NEW_YEAR
 
     const getSkyTier = () => {
@@ -57,6 +57,13 @@ export default function Sky() {
         return { id: 4, name: "Infinite Galaxy", intensity: 3 }
     }
     const skyTier = getSkyTier()
+
+    const backgroundStars = [
+        { x: 10, y: 15, size: 2 }, { x: 85, y: 10, size: 3 }, { x: 30, y: 40, size: 2 },
+        { x: 70, y: 60, size: 3 }, { x: 20, y: 80, size: 2 }, { x: 90, y: 90, size: 3 },
+        { x: 50, y: 20, size: 2 }, { x: 15, y: 55, size: 3 }, { x: 80, y: 35, size: 2 },
+        { x: 45, y: 75, size: 3 }, { x: 5, y: 95, size: 2 }, { x: 95, y: 5, size: 3 }
+    ];
 
     const getSkyMood = () => {
         const count = allStars.length
@@ -147,10 +154,8 @@ export default function Sky() {
                 
                 const blob = await toBlob(linkCardRef.current, { 
                     cacheBust: true, 
-                    pixelRatio: 1,
-                    backgroundColor: '#020617',
-                    width: 1080,
-                    height: 1920
+                    pixelRatio: 2, // High quality
+                    backgroundColor: '#020617'
                 })
                 
                 if (!blob) throw new Error("Blob generation failed")
@@ -201,10 +206,8 @@ export default function Sky() {
             if (mode === 'download') {
                 const dataUrl = await toPng(ref.current, { 
                     cacheBust: true, 
-                    pixelRatio: 1,
-                    backgroundColor: '#020617',
-                    width: 1080,
-                    height: 1920
+                    pixelRatio: 2,
+                    backgroundColor: '#020617'
                 })
                 const link = document.createElement('a')
                 link.download = `zola-${type}.png`; link.href = dataUrl; link.click()
@@ -220,10 +223,8 @@ export default function Sky() {
 
                         const blob = await toBlob(ref.current, { 
                             cacheBust: true, 
-                            pixelRatio: 1,
-                            backgroundColor: '#020617',
-                            width: 1080,
-                            height: 1920
+                            pixelRatio: 2,
+                            backgroundColor: '#020617'
                         })
                         
                         if (!blob) throw new Error("Blob generation failed")
@@ -410,32 +411,92 @@ export default function Sky() {
 
             {selectedStar && (
                 <div className="modal-overlay" onClick={() => setSelectedStar(null)}>
-                    <motion.div className="modal glass-card" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} onClick={(e) => e.stopPropagation()} style={{ boxShadow: `0 0 30px 5px ${getStarColor(selectedStar.style)}20, inset 0 0 20px ${getStarColor(selectedStar.style)}15`, textAlign: 'left', padding: '25px', border: `1px solid ${getStarColor(selectedStar.style)}40`, overflow: 'hidden' }}>
-                        <button onClick={() => setSelectedStar(null)} style={{ position: 'absolute', top: '12px', right: '15px', background: 'transparent', width: 'auto', padding: '5px', margin: 0, border: 'none', color: 'var(--text-secondary)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '24px' }}><FaTimes size={18} /></button>
+                    <motion.div 
+                        className="glass-card" 
+                        initial={{ opacity: 0, scale: 0.9 }} 
+                        animate={{ opacity: 1, scale: 1 }} 
+                        onClick={(e) => e.stopPropagation()} 
+                        style={{ 
+                            width: '100%',
+                            maxWidth: '400px',
+                            padding: 0,
+                            position: 'relative',
+                            overflow: 'hidden',
+                            border: `2px solid ${getStarColor(selectedStar.style)}40`,
+                            background: 'rgba(20, 20, 30, 0.98)',
+                            boxShadow: `0 30px 60px rgba(0,0,0,0.5), 0 0 40px ${getStarColor(selectedStar.style)}15`,
+                            textAlign: 'left'
+                        }}
+                    >
+                        {/* Background Stars Decoration */}
+                        {backgroundStars.map((s, i) => (
+                            <div key={i} style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%`, width: `${s.size}px`, height: `${s.size}px`, background: 'white', borderRadius: '50%', opacity: 0.15 }} />
+                        ))}
+                        
+                        {/* Tier-based vignette overlay */}
+                        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle, transparent 40%, ${skyTier.id >= 3 ? '#fbbf24' : 'transparent'} 150%)`, opacity: skyTier.id >= 3 ? 0.1 : 0, pointerEvents: 'none' }} />
+
+                        <button onClick={() => setSelectedStar(null)} style={{ position: 'absolute', top: '15px', right: '15px', background: 'transparent', width: 'auto', padding: '5px', margin: 0, border: 'none', color: 'var(--text-secondary)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '24px' }}><FaTimes size={18} /></button>
+                        
+                        <div style={{ textAlign: 'center', opacity: 0.5, paddingTop: '20px', marginBottom: '-10px', position: 'relative', zIndex: 1 }}>
+                            <Logo size={24} />
+                        </div>
+
                         {isRevealed ? (
-                            <><div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 20, marginLeft: -25, marginTop: -25 }}>
-                                <div style={{ width: 100, height: 100, borderRadius: '0 0 30px 0', background: `${getStarColor(selectedStar.style)}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', flexShrink: 0, borderRight: `1px solid ${getStarColor(selectedStar.style)}40`, borderBottom: `1px solid ${getStarColor(selectedStar.style)}40`, boxShadow: `inset 0 0 20px ${getStarColor(selectedStar.style)}20` }}>{selectedStar.emoji}</div>
-                                <div style={{ flex: 1, paddingTop: 20, paddingRight: 40, textAlign: 'center' }}>
-                                    <p style={{ margin: 0, fontSize: '1.3rem', color: 'var(--text-primary)', fontWeight: 500, letterSpacing: '-0.5px' }}>~ {selectedStar.sender_name || 'Anonymous'}</p>
+                            <div style={{ position: 'relative', zIndex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '25px' }}>
+                                    <div style={{ 
+                                        width: '80px', height: '80px', 
+                                        borderRadius: '20px', 
+                                        background: `${getStarColor(selectedStar.style)}20`,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: '2.5rem',
+                                        border: `1px solid ${getStarColor(selectedStar.style)}40`
+                                    }}>{selectedStar.emoji}</div>
+                                    <div>
+                                        <p style={{ margin: 0, fontSize: '1.4rem', color: '#f1f5f9', fontWeight: 500 }}>
+                                            ~ {selectedStar.sender_name || 'Anonymous'}
+                                        </p>
+                                        <p style={{ margin: '5px 0 0 0', fontSize: '0.7rem', color: getStarColor(selectedStar.style), textTransform: 'uppercase', letterSpacing: '3px' }}>Sent a wish</p>
+                                    </div>
+                                </div>
+
+                                <div className="msg-text" style={{ padding: '0 25px 30px 25px', lineHeight: '1.6', fontSize: '1.1rem', color: '#e2e8f0', minHeight: '60px' }}>
+                                    {selectedStar.message.split("").map((char, i) => (
+                                        <motion.span key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.05, delay: i * 0.02 }}>{char}</motion.span>
+                                    ))}
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '10px', padding: '0 20px 20px 20px' }}>
+                                    <button className="story-btn" onClick={() => handleShareStory('star', 'share')} disabled={sharing} style={{ flex: 1, margin: 0, height: '45px', background: getStarColor(selectedStar.style), color: ['classic', 'gold', 'green'].includes(selectedStar.style) ? '#020617' : '#ffffff', boxShadow: `0 10px 20px ${getStarColor(selectedStar.style)}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                                        {sharing ? '...' : <><FaShareAlt /> Share</>}
+                                    </button>
+                                    <button className="story-btn" onClick={() => handleShareStory('star', 'download')} disabled={sharing} style={{ width: '45px', margin: 0, height: '45px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {sharing ? '...' : <FaDownload />}
+                                    </button>
+                                </div>
+
+                                <div style={{ 
+                                    background: getStarColor(selectedStar.style), 
+                                    height: '40px', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    color: ['classic', 'gold', 'green'].includes(selectedStar.style) ? '#020617' : '#ffffff', 
+                                    fontWeight: 700, 
+                                    fontSize: '0.75rem', 
+                                    letterSpacing: '2px', 
+                                    textTransform: 'uppercase' 
+                                }}>
+                                    From {creatorName}'s Sky
                                 </div>
                             </div>
-                            <div className="msg-text" style={{ textAlign: 'justify', lineHeight: '1.6', fontSize: '1rem', marginBottom: 25, color: '#e2e8f0', minHeight: 60 }}>
-                                {selectedStar.message.split("").map((char, i) => (
-                                    <motion.span key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.05, delay: i * 0.02 }}>{char}</motion.span>
-                                ))}
-                            </div>
-                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                                <button className="story-btn" onClick={() => handleShareStory('star', 'share')} disabled={sharing} style={{ flex: 1, margin: 0, background: getStarColor(selectedStar.style), color: ['classic', 'gold', 'green'].includes(selectedStar.style) ? '#020617' : '#ffffff', boxShadow: `0 10px 20px ${getStarColor(selectedStar.style)}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                    {sharing ? 'PREPARING...' : <><FaShareAlt /> Share to Story</>}
-                                </button>
-                                <button className="story-btn" onClick={() => handleShareStory('star', 'download')} disabled={sharing} style={{ width: '50px', margin: 0, background: 'var(--glass-bg)', color: 'white', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    {sharing ? '...' : <FaDownload />}
-                                </button>
-                            </div></>
                         ) : (
-                            <div style={{ textAlign: 'center', padding: '20px 0' }}><span className="emoji-big" style={{ fontSize: '4rem' }}>🔒</span><p style={{ marginTop: '15px' }}>This star is locked until New Year 2026!</p></div>
+                            <div style={{ textAlign: 'center', padding: '40px 20px', position: 'relative', zIndex: 1 }}>
+                                <span className="emoji-big" style={{ fontSize: '4rem' }}>🔒</span>
+                                <p style={{ marginTop: '15px', opacity: 0.8 }}>This star is locked until New Year 2026!</p>
+                            </div>
                         )}
-                        <button onClick={() => setSelectedStar(null)} style={{ marginTop: '10px', background: 'transparent', color: 'white', border: '1px solid var(--glass-border)', width: '100%' }}>Close</button>
                     </motion.div>
                 </div>
             )}

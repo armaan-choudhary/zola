@@ -17,38 +17,6 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier },
 
   const tier = skyTier || { id: 1, name: "First Spark", intensity: 1 };
 
-  // 9:16 Aspect Ratio Styles (Instagram Story Standard)
-  const canvasStyle = {
-    width: '1080px',
-    height: '1920px',
-    position: 'fixed',
-    left: '-2000px',
-    top: '0',
-    zIndex: '-1000',
-    pointerEvents: 'none',
-    background: '#020617',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: 'white',
-    fontFamily: "'Space Grotesk', sans-serif",
-  };
-
-  const containerStyle = {
-    width: '1080px',
-    height: '1920px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '120px 60px',
-    boxSizing: 'border-box',
-    position: 'relative',
-    background: 'radial-gradient(circle at 50% 100%, #1e293b 0%, #020617 100%)',
-    overflow: 'hidden'
-  };
-
   const backgroundStars = [
     { x: 10, y: 15, size: 4 }, { x: 85, y: 10, size: 3 }, { x: 30, y: 40, size: 5 },
     { x: 70, y: 60, size: 3 }, { x: 20, y: 80, size: 4 }, { x: 90, y: 90, size: 5 },
@@ -56,76 +24,83 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier },
     { x: 45, y: 75, size: 5 }, { x: 5, y: 95, size: 3 }, { x: 95, y: 5, size: 4 }
   ];
 
+  // This wrapper keeps it in the DOM but off-screen.
+  // It no longer defines the size of the capture.
+  const wrapperStyle = {
+    position: 'absolute',
+    left: '-5000px',
+    top: '0',
+    pointerEvents: 'none',
+    zIndex: -1000,
+    background: '#020617'
+  };
+
+  // This is the actual element being captured (The Modal)
+  const modalBaseStyle = {
+    background: 'rgba(20, 20, 30, 0.98)',
+    borderRadius: '40px',
+    boxShadow: '0 50px 100px rgba(0,0,0,0.8)',
+    boxSizing: 'border-box',
+    fontFamily: "'Space Grotesk', sans-serif",
+    color: 'white',
+    overflow: 'hidden'
+  };
+
   if (type === 'star') {
     const starColor = getStarColor(data.style);
+    const isDarkText = ['classic', 'gold', 'green'].includes(data.style);
+
     return (
-      <div ref={ref} style={canvasStyle}>
-        <div style={containerStyle}>
-          {/* Background Stars Decoration */}
-          {backgroundStars.map((s, i) => (
-            <div key={i} style={{
-              position: 'absolute',
-              left: `${s.x}%`,
-              top: `${s.y}%`,
-              width: `${s.size}px`,
-              height: `${s.size}px`,
-              background: 'white',
-              borderRadius: '50%',
-              opacity: 0.2
-            }} />
-          ))}
+      <div style={wrapperStyle}>
+        <div ref={ref} style={{ ...modalBaseStyle, width: '500px', border: `2px solid ${starColor}40`, paddingTop: '30px', position: 'relative' }}>
+            {/* Background Stars Decoration */}
+            {backgroundStars.map((s, i) => (
+              <div key={i} style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%`, width: `${s.size}px`, height: `${s.size}px`, background: 'white', borderRadius: '50%', opacity: 0.15 }} />
+            ))}
+            
+            {/* Tier-based vignette overlay */}
+            <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle, transparent 40%, ${tier.id >= 3 ? '#fbbf24' : 'transparent'} 150%)`, opacity: tier.id >= 3 ? 0.15 : 0, pointerEvents: 'none' }} />
 
-          {/* Top Branding */}
-          <div style={{ textAlign: 'center' }}>
-            <Logo size={140} />
-            <p style={{ marginTop: '20px', letterSpacing: '10px', opacity: 0.5, textTransform: 'uppercase', fontSize: '1.2rem' }}>New Year 2026</p>
-          </div>
-
-          {/* Center Message Card */}
-          <div style={{
-            width: '100%',
-            background: 'rgba(20, 20, 30, 0.9)',
-            border: `2px solid ${starColor}40`,
-            borderRadius: '60px',
-            padding: '80px 60px',
-            position: 'relative',
-            boxShadow: `0 40px 100px rgba(0,0,0,0.5), 0 0 60px ${starColor}20`,
-            backdropFilter: 'blur(30px)'
-          }}>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '40px', marginBottom: '60px' }}>
-                <div style={{ 
-                  width: '160px', height: '160px', 
-                  borderRadius: '40px', 
-                  background: `${starColor}30`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '5rem',
-                  border: `1px solid ${starColor}40`
-                }}>
-                  {data.emoji}
-                </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: '2.5rem', color: '#f1f5f9', fontWeight: 500 }}>~ {data.sender_name || 'Anonymous'}</p>
-                  <p style={{ margin: '10px 0 0 0', color: starColor, textTransform: 'uppercase', letterSpacing: '4px', fontSize: '1rem' }}>Sent a Star</p>
-                </div>
-             </div>
-             <p style={{ fontSize: '2.2rem', lineHeight: '1.5', color: '#e2e8f0', margin: 0, textAlign: 'left' }}>
-               "{data.message}"
-             </p>
-          </div>
-
-          {/* Bottom Link Placeholder Area */}
-          <div style={{ textAlign: 'center', width: '100%' }}>
-            <div style={{ 
-              border: '4px dashed rgba(255,255,255,0.2)', 
-              borderRadius: '40px', 
-              padding: '40px', 
-              marginBottom: '30px',
-              background: 'rgba(255,255,255,0.02)'
-            }}>
-              <p style={{ fontSize: '1.4rem', letterSpacing: '2px', opacity: 0.6, textTransform: 'uppercase' }}>Place Link Sticker Here</p>
+            <div style={{ textAlign: 'center', opacity: 0.7, marginBottom: '-5px', position: 'relative', zIndex: 1 }}>
+              <Logo size={32} />
             </div>
-            <p style={{ fontSize: '1.2rem', opacity: 0.4 }}>Create your own sky at zola.app</p>
-          </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '25px', padding: '30px', position: 'relative', zIndex: 1 }}>
+              <div style={{ 
+                width: '100px', height: '100px', 
+                borderRadius: '25px', 
+                background: `${starColor}20`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '3.5rem',
+                border: `1px solid ${starColor}40`
+              }}>
+                {data.emoji}
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: '1.8rem', color: '#f1f5f9', fontWeight: 500 }}>
+                  ~ {data.sender_name || 'Anonymous'}
+                </p>
+                <p style={{ margin: '5px 0 0 0', fontSize: '0.8rem', color: starColor, textTransform: 'uppercase', letterSpacing: '4px' }}>Sent a wish</p>
+              </div>
+            </div>
+
+            <p style={{ textAlign: 'left', lineHeight: '1.5', fontSize: '1.4rem', padding: '0 30px 40px 30px', margin: 0, color: '#e2e8f0', fontWeight: 300 }}>
+              "{data.message}"
+            </p>
+
+            <div style={{ 
+                background: starColor, 
+                height: '60px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                color: isDarkText ? '#020617' : '#ffffff', 
+                fontWeight: 700, 
+                fontSize: '1rem', 
+                letterSpacing: '3px', 
+                textTransform: 'uppercase' 
+            }}>
+              From {creatorName}'s Sky
+            </div>
         </div>
       </div>
     );
@@ -133,70 +108,42 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier },
 
   if (type === 'constellation') {
     return (
-      <div ref={ref} style={canvasStyle}>
-        <div style={containerStyle}>
-          {/* Background Stars Decoration */}
-          {backgroundStars.map((s, i) => (
-            <div key={i} style={{
-              position: 'absolute',
-              left: `${s.x}%`,
-              top: `${s.y}%`,
-              width: `${s.size}px`,
-              height: `${s.size}px`,
-              background: 'white',
-              borderRadius: '50%',
-              opacity: 0.2
-            }} />
-          ))}
+      <div style={wrapperStyle}>
+        <div ref={ref} style={{ ...modalBaseStyle, width: '600px', padding: '30px 40px 60px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', border: '1px solid rgba(255, 255, 255, 0.1)', position: 'relative' }}>
+            {/* Background Stars Decoration */}
+            {backgroundStars.map((s, i) => (
+              <div key={i} style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%`, width: `${s.size}px`, height: `${s.size}px`, background: 'white', borderRadius: '50%', opacity: 0.15 }} />
+            ))}
+            
+            {/* Tier-based vignette overlay */}
+            <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle, transparent 40%, ${tier.id >= 3 ? '#fbbf24' : 'transparent'} 150%)`, opacity: tier.id >= 3 ? 0.2 : 0, pointerEvents: 'none' }} />
 
-          <div style={{ textAlign: 'center' }}>
-            <Logo size={140} />
-            <p style={{ marginTop: '20px', letterSpacing: '10px', opacity: 0.5, textTransform: 'uppercase', fontSize: '1.2rem' }}>The Full Constellation</p>
-          </div>
-
-          {/* Constellation View */}
-          <div style={{ position: 'relative', width: '900px', height: '900px', margin: '40px 0' }}>
-            <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
+            <div style={{ textAlign: 'center', opacity: 0.7, marginBottom: '30px', position: 'relative', zIndex: 1 }}>
+              <Logo size={32} />
+            </div>
+            <div style={{ position: 'relative', width: '500px', height: '500px', marginBottom: '40px', zIndex: 1 }}>
+                <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
                 {lines && lines.map((line, i) => (
-                    <line
-                        key={i}
-                        x1={`${line.p1.pos_x}%`} y1={`${line.p1.pos_y}%`}
-                        x2={`${line.p2.pos_x}%`} y2={`${line.p2.pos_y}%`}
-                        stroke="white" strokeWidth={4} strokeOpacity={0.15}
-                    />
+                    <line key={i} x1={`${line.p1.pos_x}%`} y1={`${line.p1.pos_y}%`} x2={`${line.p2.pos_x}%`} y2={`${line.p2.pos_y}%`} stroke="white" strokeWidth={3} strokeOpacity={0.2} />
                 ))}
-            </svg>
-            {data.map((star) => {
+                </svg>
+                {data.map((star) => {
                 const Icon = FaIcons[star.shape] || FaIcons.FaCircle;
                 const color = getStarColor(star.style);
                 return (
-                    <div key={star.id} style={{
-                        position: 'absolute',
-                        left: `${star.pos_x}%`, top: `${star.pos_y}%`,
-                        transform: 'translate(-50%, -50%)',
-                        color: 'white',
-                        filter: `drop-shadow(0 0 10px ${color}80)`,
-                        opacity: 0.9
-                    }}>
-                        <Icon size={24} />
+                    <div key={star.id} style={{ position: 'absolute', left: `${star.pos_x}%`, top: `${star.pos_y}%`, transform: 'translate(-50%, -50%)', color: 'white', filter: `drop-shadow(0 0 10px ${color}80)`, opacity: 0.9 }}>
+                    <Icon size={18} />
                     </div>
                 );
-            })}
-          </div>
-
-          <div style={{ textAlign: 'center', width: '100%' }}>
-             <h2 style={{ fontSize: '3.5rem', fontWeight: 300, marginBottom: '10px' }}>{creatorName}'s Sky</h2>
-             <p style={{ fontSize: '1.4rem', color: '#fbbf24', letterSpacing: '6px', textTransform: 'uppercase', marginBottom: '80px' }}>{tier.name}</p>
-             
-             <div style={{ 
-              border: '4px dashed rgba(255,255,255,0.2)', 
-              borderRadius: '40px', 
-              padding: '40px', 
-              background: 'rgba(255,255,255,0.02)'
-            }}>
-              <p style={{ fontSize: '1.4rem', letterSpacing: '2px', opacity: 0.6, textTransform: 'uppercase' }}>Place Link Sticker Here</p>
+                })}
             </div>
-          </div>
+
+            <div style={{ textAlign: 'center' }}>
+                <h2 style={{ fontSize: '2.5rem', fontWeight: 300, marginBottom: '10px', margin: 0 }}>{creatorName}'s Sky</h2>
+                <div style={{ fontSize: '1rem', color: '#fbbf24', letterSpacing: '6px', textTransform: 'uppercase' }}>
+                    {tier.name}
+                </div>
+            </div>
         </div>
       </div>
     );
@@ -204,57 +151,28 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier },
 
   if (type === 'link-only') {
     return (
-      <div ref={ref} style={canvasStyle}>
-        <div style={containerStyle}>
-          {/* Background Stars Decoration */}
-          {backgroundStars.map((s, i) => (
-            <div key={i} style={{
-              position: 'absolute',
-              left: `${s.x}%`,
-              top: `${s.y}%`,
-              width: `${s.size}px`,
-              height: `${s.size}px`,
-              background: 'white',
-              borderRadius: '50%',
-              opacity: 0.2
-            }} />
-          ))}
+      <div style={wrapperStyle}>
+        <div ref={ref} style={{ ...modalBaseStyle, width: '500px', padding: '30px 40px 60px 40px', textAlign: 'center', border: '2px solid #fbbf2440', position: 'relative' }}>
+            {/* Background Stars Decoration */}
+            {backgroundStars.map((s, i) => (
+              <div key={i} style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%`, width: `${s.size}px`, height: `${s.size}px`, background: 'white', borderRadius: '50%', opacity: 0.15 }} />
+            ))}
 
-          {/* Top Branding */}
-          <div style={{ textAlign: 'center' }}>
-            <Logo size={140} />
-            <p style={{ marginTop: '20px', letterSpacing: '10px', opacity: 0.5, textTransform: 'uppercase', fontSize: '1.2rem' }}>New Year 2026</p>
-          </div>
-
-          {/* Main Hero Card */}
-          <div style={{
-            width: '100%',
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '2px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '60px',
-            padding: '80px 40px',
-            textAlign: 'center',
-            boxShadow: '0 40px 100px rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(30px)'
-          }}>
-            <p style={{ fontSize: '1.4rem', color: '#fbbf24', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '20px' }}>Join My Galaxy</p>
-            <h2 style={{ fontSize: '4rem', fontWeight: 300, marginBottom: '30px', lineHeight: '1.1' }}>Add a Star to my Sky</h2>
-            <p style={{ fontSize: '1.2rem', color: '#94a3b8', lineHeight: '1.6' }}>Send me an anonymous message, wish, or emoji for the new year. ✨</p>
-          </div>
-
-          {/* Bottom Area */}
-          <div style={{ textAlign: 'center', width: '100%' }}>
-            <div style={{ 
-              border: '4px dashed #fbbf24', 
-              borderRadius: '40px', 
-              padding: '60px 40px', 
-              marginBottom: '30px',
-              background: 'rgba(251, 191, 36, 0.05)'
-            }}>
-              <p style={{ fontSize: '1.8rem', letterSpacing: '2px', color: '#fbbf24', textTransform: 'uppercase', fontWeight: 700 }}>Tap to Add a Star</p>
+            <div style={{ textAlign: 'center', opacity: 0.7, marginBottom: '30px', position: 'relative', zIndex: 1 }}>
+              <Logo size={32} />
             </div>
-            <p style={{ fontSize: '1.4rem', color: 'white', fontWeight: 500 }}>~ {creatorName}</p>
-          </div>
+            <p style={{ fontSize: '1rem', color: '#fbbf24', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '20px', margin: 0, position: 'relative', zIndex: 1 }}>Join My Galaxy</p>
+            <h2 style={{ fontSize: '3rem', fontWeight: 300, marginBottom: '25px', lineHeight: '1.1', margin: '15px 0' }}>Add a Star to my Sky</h2>
+            <p style={{ fontSize: '1.1rem', color: '#94a3b8', lineHeight: '1.5', marginBottom: '40px' }}>Send an anonymous message or wish for the new year. ✨</p>
+            
+            <div style={{ 
+                border: '3px dashed #fbbf24', 
+                borderRadius: '30px', 
+                padding: '30px', 
+                background: 'rgba(251, 191, 36, 0.05)' 
+            }}>
+              <p style={{ fontSize: '1.4rem', color: '#fbbf24', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '2px', margin: 0 }}>Tap to Add a Star</p>
+            </div>
         </div>
       </div>
     );

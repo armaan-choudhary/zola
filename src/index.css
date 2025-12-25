@@ -391,6 +391,16 @@ button.share-btn:hover {
   display: flex;
   gap: 10px;
   align-items: center;
+  justify-content: center;
+}
+
+.bottom-controls .share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  white-space: nowrap;
 }
 
 /* 11. Mobile Responsiveness */
@@ -422,12 +432,10 @@ button.share-btn:hover {
   }
 
   .bottom-controls .share-btn {
-    padding: 10px 12px;
+    padding: 0 12px;
     font-size: 0.75rem;
     flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin: 0;
   }
 }
 

@@ -45,7 +45,7 @@ const Logo = ({ size = 40, className = "" }) => {
         letterSpacing: '2px', 
         color: 'white',
         textTransform: 'uppercase',
-        fontFamily: 'var(--font-main)',
+        fontFamily: "'Space Grotesk', sans-serif",
         marginLeft: `-${(size * 0.25) - 8}px`,
         lineHeight: 1,
         display: 'flex',
