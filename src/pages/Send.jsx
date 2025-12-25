@@ -24,7 +24,7 @@ export default function Send() {
   useEffect(() => {
     const fetchCreatorName = async () => {
       setFetching(true)
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('skies')
         .select('creator_name')
         .eq('slug', slug)
@@ -60,6 +60,9 @@ export default function Send() {
     else {
       showToast('Star sent! ✨')
       setForm({ message: '', name: '', emoji: '✨', style: 'classic', shape: 'FaCircle' })
+      setTimeout(() => {
+        navigate('/')
+      }, 2000)
     }
     setLoading(false)
   }

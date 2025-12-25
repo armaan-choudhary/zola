@@ -33,7 +33,6 @@ export default function Sky() {
     const [selectedStar, setSelectedStar] = useState(null)
     const [creatorName, setCreatorName] = useState('')
     const [loading, setLoading] = useState(true)
-    const [shareType, setShareType] = useState(null)
     const [needsRefresh, setNeedsRefresh] = useState(false)
     const [toast, setToast] = useState(null)
     const [timeLeft, setTimeLeft] = useState('')
@@ -144,7 +143,7 @@ export default function Sky() {
         
         try {
             await navigator.clipboard.writeText(url)
-        } catch (err) {}
+        } catch { /* ignore clipboard errors */ }
 
         if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
             setSharing(true)
@@ -183,6 +182,14 @@ export default function Sky() {
     }
 
     const [sharing, setSharing] = useState(false)
+    const [showTutorial, setShowTutorial] = useState(() => {
+        return localStorage.getItem('sky_tutorial_seen') !== 'true'
+    })
+
+    const dismissTutorial = () => {
+        setShowTutorial(false)
+        localStorage.setItem('sky_tutorial_seen', 'true')
+    }
 
     const handleShareStory = async (type, mode = 'share') => {
         if (sharing) return
@@ -217,7 +224,7 @@ export default function Sky() {
                         try {
                             await navigator.clipboard.writeText(url)
                             showToast("Link copied! Paste it as a sticker in your story ✨")
-                        } catch (clipErr) { /* fallback if clipboard fails */ }
+                        } catch { /* fallback if clipboard fails */ }
 
                         const blob = await toBlob(ref.current, { 
                             cacheBust: true, 
@@ -239,7 +246,7 @@ export default function Sky() {
                         } else {
                             await navigator.share({ title: shareTitle, text: shareText, url: url })
                         }
-                    } catch (shareErr) {
+                    } catch {
                         // If file sharing fails, try sharing just the link
                         await navigator.share({ title: shareTitle, text: shareText, url: url })
                     }
@@ -333,7 +340,6 @@ export default function Sky() {
     const totalPages = Math.ceil(allStars.length / STARS_PER_PAGE)
     const startIndex = (currentPage - 1) * STARS_PER_PAGE
     const displayedStars = allStars.slice(startIndex, startIndex + STARS_PER_PAGE)
-    const modalColor = selectedStar ? getStarColor(selectedStar.style) : 'rgba(20, 20, 30, 0.7)';
 
     return (
         <div className="sky-container">
@@ -388,6 +394,56 @@ export default function Sky() {
                     </>
                 )}
             </motion.div>
+
+            <AnimatePresence>
+                {showTutorial && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20, x: '-50%' }}
+                        animate={{ opacity: 1, y: 0, x: '-50%' }}
+                        exit={{ opacity: 0, y: 20, x: '-50%' }}
+                        style={{
+                            position: 'fixed',
+                            bottom: '100px',
+                            left: '50%',
+                            zIndex: 100,
+                            width: 'calc(100% - 40px)',
+                            maxWidth: '320px',
+                            background: 'rgba(15, 23, 42, 0.9)',
+                            backdropFilter: 'blur(12px)',
+                            border: '1px solid var(--glass-border)',
+                            borderRadius: '20px',
+                            padding: '20px',
+                            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                            textAlign: 'center'
+                        }}
+                    >
+                        <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: 'var(--accent)' }}>✨ Quick Guide</h3>
+                        <div style={{ textAlign: 'left', fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <p style={{ margin: 0 }}>🔗 <b>Link:</b> Copy & send to friends to invite them.</p>
+                            <p style={{ margin: 0 }}>📱 <b>Story:</b> Share this sky to your social media.</p>
+                            <p style={{ margin: 0 }}>📥 <b>Download:</b> Save the sky as a high-quality image.</p>
+                            <p style={{ margin: 0 }}>⭐ <b>Tap a Star:</b> Read the secret message hidden within.</p>
+                        </div>
+                        <button 
+                            onClick={dismissTutorial}
+                            style={{ 
+                                marginTop: '16px', 
+                                padding: '8px 24px', 
+                                background: 'var(--accent)', 
+                                color: 'var(--bg-dark)',
+                                border: 'none',
+                                borderRadius: '12px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                fontSize: '0.8rem',
+                                width: '100%'
+                            }}
+                        >
+                            Got it!
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="bottom-controls" style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '10px', zIndex: 50, alignItems: 'center' }}>
                 {totalPages > 1 && (
