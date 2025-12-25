@@ -52,9 +52,9 @@ export default function Sky() {
 
     const getSkyTier = () => {
         const count = allStars.length
-        if (count < 10) return { id: 1, name: "First Spark", intensity: 1, color: '#94a3b8', next: 10 }
-        if (count < 25) return { id: 2, name: "Astral Awakening", intensity: 1.5, color: '#60a5fa', next: 25 }
-        if (count < 50) return { id: 3, name: "Supernova Bloom", intensity: 2, color: '#fbbf24', next: 50 }
+        if (count < 5) return { id: 1, name: "First Spark", intensity: 1, color: '#94a3b8', next: 5 }
+        if (count < 15) return { id: 2, name: "Astral Awakening", intensity: 1.5, color: '#60a5fa', next: 15 }
+        if (count < 30) return { id: 3, name: "Supernova Bloom", intensity: 2, color: '#fbbf24', next: 30 }
         return { id: 4, name: "Infinite Galaxy", intensity: 3, color: '#22d3ee', next: null }
     }
     const skyTier = getSkyTier()
@@ -70,7 +70,7 @@ export default function Sky() {
         const count = allStars.length
         if (count === 0) return "A silent void awaits your light"
         if (count < 5) return "The first lights are gathering"
-        if (count < 10) return "A vibrant cluster is forming"
+        if (count < 15) return "A vibrant cluster is forming"
         return "A magnificent galaxy of wishes"
     }
 
@@ -422,7 +422,7 @@ export default function Sky() {
                     <div style={{ width: '46px', height: '3px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
                         <motion.div 
                             animate={{ 
-                                width: `${Math.min((allStars.length / 50) * 100, 100)}%`,
+                                width: `${Math.min((allStars.length / 30) * 100, 100)}%`,
                                 background: skyTier.id >= 2 ? `linear-gradient(90deg, #fff, ${skyTier.color})` : '#94a3b8',
                                 boxShadow: skyTier.id >= 2 ? `0 0 8px ${skyTier.color}80` : 'none'
                             }} 
