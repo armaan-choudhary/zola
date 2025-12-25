@@ -109,7 +109,7 @@ export default function Sky() {
         }
     }
 
-    const STARS_PER_PAGE = 12
+    const STARS_PER_PAGE = 10
 
     useEffect(() => {
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3')
