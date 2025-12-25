@@ -411,24 +411,13 @@ button.share-btn:hover {
   .hero-logo { font-size: 3.5rem; }
   
   /* Disable blur on mobile for better performance */
-  input, textarea, select, .glass-card, .share-btn, .pagination-btn, .bottom-controls {
+  input, textarea, select, .glass-card, .share-btn, .pagination-btn {
     backdrop-filter: none !important;
     background: rgba(30, 41, 59, 0.95) !important;
   }
 
   button {
     backdrop-filter: none !important;
-  }
-
-  .bottom-controls {
-    gap: 6px !important;
-    padding: 6px 10px;
-    border-radius: var(--border-radius-full);
-    border: 1px solid var(--glass-border);
-    width: auto !important;
-    max-width: 95vw !important;
-    justify-content: center;
-    box-sizing: border-box;
   }
 
   .bottom-controls .share-btn {

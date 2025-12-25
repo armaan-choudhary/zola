@@ -208,13 +208,13 @@ export default function Sky() {
         const shareText = `Check out this ${type === 'star' ? 'wish' : 'sky'} on ZOLA! ✨`
 
         try {
-            // Small delay for stability
-            await new Promise(r => setTimeout(r, 300))
+            // Increased delay for artifact stability
+            await new Promise(r => setTimeout(r, 500))
 
             if (mode === 'download') {
                 const dataUrl = await toPng(ref.current, { 
                     cacheBust: true, 
-                    pixelRatio: 2
+                    pixelRatio: 3 // Higher quality for artifact feel
                 })
                 const link = document.createElement('a')
                 link.download = `zola-${type}.png`; link.href = dataUrl; link.click()
@@ -223,11 +223,6 @@ export default function Sky() {
                 // Share mode
                 if (navigator.share) {
                     try {
-                        try {
-                            await navigator.clipboard.writeText(url)
-                            showToast("Link copied! Paste it as a sticker in your story ✨")
-                        } catch { /* fallback if clipboard fails */ }
-
                         const blob = await toBlob(ref.current, { 
                             cacheBust: true, 
                             pixelRatio: 2
@@ -246,17 +241,19 @@ export default function Sky() {
                         if (navigator.canShare && navigator.canShare(shareData)) {
                             await navigator.share(shareData)
                         } else {
+                            // Try sharing link + text as fallback
                             await navigator.share({ title: shareTitle, text: shareText, url: url })
                         }
-                    } catch {
+                    } catch (shareErr) {
+                        console.error("File share failed:", shareErr)
                         // If file sharing fails, try sharing just the link
                         await navigator.share({ title: shareTitle, text: shareText, url: url })
                     }
                 } else {
                     if (isMobile) {
-                        showToast("Share unavailable (needs HTTPS). Use 📥 to save & share! ✨")
+                        showToast("Browser limited. Use 📥 to save & share! ✨")
                     } else {
-                        showToast("Native sharing is only available on mobile. Use 📥 to save! ✨")
+                        showToast("Sharing is only available on mobile. Use 📥 to save! ✨")
                     }
                 }
             }
@@ -264,7 +261,7 @@ export default function Sky() {
             if (err.name !== 'AbortError') {
                 console.error("Operation failed:", err)
                 if (isMobile) {
-                    showToast("Sharing failed. Try opening this link in Safari or Chrome for full support! ✨")
+                    showToast("Sharing failed. Try opening in Safari or Chrome! ✨")
                 } else {
                     showToast("Could not complete operation ✨")
                 }
@@ -364,13 +361,13 @@ export default function Sky() {
             )}</AnimatePresence>
 
             <nav className="navbar" style={{ paddingRight: '15px', paddingLeft: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 'var(--nav-height)', pointerEvents: 'none' }}>
-                <Link to="/" className="brand" style={{ display: 'flex', alignItems: 'center', height: '100%', width: 'auto', justifyContent: 'flex-start', pointerEvents: 'auto' }}>
+                <Link to="/" className="brand" style={{ display: 'flex', alignItems: 'center', height: '100%', width: window.innerWidth < 600 ? '100px' : '140px', justifyContent: 'flex-start', pointerEvents: 'auto' }}>
                     <Logo size={window.innerWidth < 600 ? 24 : 32} />
                 </Link>
-                <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', flex: 1, minWidth: 0, padding: '0 10px' }}>
+                <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', flex: 1, minWidth: 0, padding: '0 5px' }}>
                     <div className="sky-title" style={{ padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                         <span style={{ fontSize: '0.6rem', opacity: 0.6, display: 'block', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1 }}>{getGreeting()}</span>
-                        <span style={{ lineHeight: 1.2, fontSize: window.innerWidth < 600 ? '0.9rem' : '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{creatorName}'s Sky</span>
+                        <span style={{ lineHeight: 1.2, fontSize: window.innerWidth < 600 ? '0.85rem' : '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%', fontWeight: 600 }}>{creatorName}'s Sky</span>
                     </div>
                     <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)', opacity: 0.5, marginTop: '2px', lineHeight: 1 }}>
                         {isRevealed ? getSkyMood() : `Revealing in ${timeLeft}`}
@@ -508,21 +505,37 @@ export default function Sky() {
                 )}
             </AnimatePresence>
 
-            <div className="bottom-controls" style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '10px', zIndex: 50, alignItems: 'center' }}>
-                {totalPages > 1 && (
-                    <><div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <button className="pagination-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}><FaChevronLeft size={12} /></button>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', minWidth: 30, textAlign: 'center' }}>{currentPage}/{totalPages}</span>
-                        <button className="pagination-btn" disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}><FaChevronRight size={12} /></button>
-                    </div><div style={{ width: 1, height: 20, background: 'var(--glass-border)', margin: '0 2px' }}></div></>
-                )}
-                <button className="share-btn" onClick={handleShareLink}>Link 🔗</button>
-                <button className="share-btn" onClick={() => handleShareStory('sky', 'share')} disabled={sharing}>
-                    {sharing ? '...' : <><FaShareAlt style={{ marginRight: '5px' }} /> Story</>}
-                </button>
-                <button className="share-btn" onClick={() => handleShareStory('sky', 'download')} disabled={sharing} style={{ padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {sharing ? '...' : <FaDownload />}
-                </button>
+            <div className="bottom-controls" style={{ 
+                position: 'fixed', 
+                bottom: 0, 
+                left: 0, 
+                right: 0, 
+                display: 'flex', 
+                zIndex: 50, 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                padding: window.innerWidth < 600 ? '15px 15px 25px 15px' : '20px 20px 30px 20px',
+                background: 'linear-gradient(to top, rgba(2, 6, 23, 0.95) 0%, rgba(2, 6, 23, 0.4) 100%)',
+                backdropFilter: 'blur(10px)',
+                pointerEvents: 'none'
+            }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', pointerEvents: 'auto', width: 'auto', justifyContent: 'center' }}>
+                    {totalPages > 1 && (
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <button className="pagination-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} style={{ width: 32, height: 32 }}><FaChevronLeft size={10} /></button>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', minWidth: 25, textAlign: 'center' }}>{currentPage}/{totalPages}</span>
+                            <button className="pagination-btn" disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)} style={{ width: 32, height: 32 }}><FaChevronRight size={10} /></button>
+                            <div style={{ width: 1, height: 16, background: 'var(--glass-border)', margin: '0 4px' }}></div>
+                        </div>
+                    )}
+                    <button className="share-btn" onClick={handleShareLink} style={{ height: 36, padding: '0 12px' }}>Link 🔗</button>
+                    <button className="share-btn" onClick={() => handleShareStory('sky', 'share')} disabled={sharing} style={{ height: 36, padding: '0 12px' }}>
+                        {sharing ? '...' : <><FaShareAlt size={12} style={{ marginRight: '4px' }} /> Story</>}
+                    </button>
+                    <button className="share-btn" onClick={() => handleShareStory('sky', 'download')} disabled={sharing} style={{ width: 36, height: 36, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {sharing ? '...' : <FaDownload size={14} />}
+                    </button>
+                </div>
             </div>
 
             {selectedStar && (
@@ -544,26 +557,6 @@ export default function Sky() {
                             textAlign: 'left'
                         }}
                     >
-                        {/* Star Counter Pill */}
-                        <div style={{
-                            position: 'absolute',
-                            top: '20px',
-                            right: '20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            padding: '4px 10px',
-                            borderRadius: '10px',
-                            backdropFilter: 'blur(4px)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            opacity: 0.8,
-                            zIndex: 10
-                        }}>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#f1f5f9' }}>{allStars.length}</span>
-                            <Star star={{ style: selectedStar.style }} static size={8} />
-                        </div>
-
                         {/* Background Stars Decoration */}
                         {backgroundStars.map((s, i) => (
                             <div key={i} style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%`, width: `${s.size}px`, height: `${s.size}px`, background: 'white', borderRadius: '50%', opacity: 0.2 }} />
