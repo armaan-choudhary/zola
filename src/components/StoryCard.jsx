@@ -28,12 +28,12 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier },
     color: 'white',
     fontFamily: "'Space Grotesk', sans-serif",
     position: 'fixed',
-    left: '-9999px',
-    top: '-9999px',
+    left: '-5000px', // Far off-screen but still 'rendered'
+    top: '0',
     zIndex: '-1000',
     pointerEvents: 'none',
     background: 'radial-gradient(circle at 50% 100%, #1e293b 0%, #020617 100%)',
-    visibility: 'hidden'
+    opacity: 0
   };
 
   const containerStyle = {

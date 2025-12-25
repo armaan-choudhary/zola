@@ -135,7 +135,6 @@ export default function Sky() {
         if (sharing) return
         const url = `${window.location.origin}/send/${slug}`
         
-        // Always copy link first
         try {
             await navigator.clipboard.writeText(url)
         } catch (err) {}
@@ -143,7 +142,16 @@ export default function Sky() {
         if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
             setSharing(true)
             try {
-                const blob = await toBlob(linkCardRef.current, { cacheBust: true, pixelRatio: 1 })
+                // Wait a bit to ensure fonts and layout are ready
+                await new Promise(r => setTimeout(r, 150))
+                
+                const blob = await toBlob(linkCardRef.current, { 
+                    cacheBust: true, 
+                    pixelRatio: 1,
+                    backgroundColor: '#020617'
+                })
+                
+                if (!blob) throw new Error("Blob generation failed")
                 const file = new File([blob], `zola-invite.png`, { type: 'image/png' })
                 
                 await navigator.share({
@@ -154,7 +162,7 @@ export default function Sky() {
                 })
                 showToast("Link copied & card shared! ✨")
             } catch (err) {
-                // Fallback to simple share if image fails
+                console.error("Link share failed:", err)
                 await navigator.share({
                     title: 'ZOLA',
                     text: `Check out my sky on ZOLA! ✨`,
@@ -185,8 +193,15 @@ export default function Sky() {
         const shareText = `Check out this ${type === 'star' ? 'wish' : 'sky'} on ZOLA! ✨`
 
         try {
+            // Small delay for stability
+            await new Promise(r => setTimeout(r, 150))
+
             if (mode === 'download') {
-                const dataUrl = await toPng(ref.current, { cacheBust: true, pixelRatio: 1 }) // Lower pixelRatio for 1080x1920
+                const dataUrl = await toPng(ref.current, { 
+                    cacheBust: true, 
+                    pixelRatio: 1,
+                    backgroundColor: '#020617'
+                })
                 const link = document.createElement('a')
                 link.download = `zola-${type}.png`; link.href = dataUrl; link.click()
                 showToast("Image saved! 📸")
@@ -200,7 +215,13 @@ export default function Sky() {
                             showToast("Link copied! Paste it as a sticker in your story ✨")
                         } catch (clipErr) { /* fallback if clipboard fails */ }
 
-                        const blob = await toBlob(ref.current, { cacheBust: true, pixelRatio: 1 })
+                        const blob = await toBlob(ref.current, { 
+                            cacheBust: true, 
+                            pixelRatio: 1,
+                            backgroundColor: '#020617'
+                        })
+                        
+                        if (!blob) throw new Error("Blob generation failed")
                         const file = new File([blob], `zola-${type}.png`, { type: 'image/png' })
                         
                         const shareData = {
