@@ -432,7 +432,6 @@ const StoryCard = React.forwardRef(({ type, data, creatorName, lines, skyTier, t
           flexDirection: 'column',
           background: MODAL_BG
         }}>
-            <StarCounter color={GOLD} />
             {/* Background Stars Decoration */}
             {backgroundStars.map((s, i) => (
               <div key={i} style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%`, width: `${s.size}px`, height: `${s.size}px`, background: 'white', borderRadius: '50%', opacity: 0.25 }} />
