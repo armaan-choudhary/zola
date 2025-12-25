@@ -179,7 +179,7 @@ export default function Sky() {
 
         try {
             if (mode === 'download') {
-                const dataUrl = await toPng(ref.current, { cacheBust: true, pixelRatio: 2 })
+                const dataUrl = await toPng(ref.current, { cacheBust: true, pixelRatio: 1 }) // Lower pixelRatio for 1080x1920
                 const link = document.createElement('a')
                 link.download = `zola-${type}.png`; link.href = dataUrl; link.click()
                 showToast("Image saved! 📸")
@@ -187,7 +187,13 @@ export default function Sky() {
                 // Share mode
                 if (navigator.share) {
                     try {
-                        const blob = await toBlob(ref.current, { cacheBust: true, pixelRatio: 2 })
+                        // SMART CLIPBOARD HACK: Copy link so user can paste as sticker
+                        try {
+                            await navigator.clipboard.writeText(url)
+                            showToast("Link copied! Paste it as a sticker in your story ✨")
+                        } catch (clipErr) { /* fallback if clipboard fails */ }
+
+                        const blob = await toBlob(ref.current, { cacheBust: true, pixelRatio: 1 })
                         const file = new File([blob], `zola-${type}.png`, { type: 'image/png' })
                         
                         const shareData = {
