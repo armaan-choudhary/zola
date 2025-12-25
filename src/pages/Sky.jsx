@@ -46,7 +46,7 @@ export default function Sky() {
     const jsConfettiRef = useRef(null)
     const lastTriggeredStarId = useRef(null)
 
-    const NEW_YEAR = new Date('2025-01-01T00:00:00')
+    const NEW_YEAR = new Date('2026-01-01T00:00:00')
     const isRevealed = new Date() >= NEW_YEAR
 
     const getSkyTier = () => {
