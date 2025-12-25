@@ -421,21 +421,28 @@ button.share-btn:hover {
   }
 
   .bottom-controls {
-    gap: 8px !important;
-    padding: 10px 16px;
+    gap: 6px !important;
+    padding: 6px 10px;
     border-radius: var(--border-radius-full);
     border: 1px solid var(--glass-border);
-    width: calc(100% - 40px) !important;
-    max-width: 400px;
-    justify-content: space-between;
+    width: auto !important;
+    max-width: 95vw !important;
+    justify-content: center;
     box-sizing: border-box;
   }
 
   .bottom-controls .share-btn {
-    padding: 0 12px;
-    font-size: 0.75rem;
-    flex: 1;
+    padding: 0 10px;
+    font-size: 0.7rem;
+    height: 36px;
+    flex: 0 1 auto;
     margin: 0;
+    min-width: 0;
+  }
+
+  .pagination-btn {
+    width: 32px;
+    height: 32px;
   }
 }
 

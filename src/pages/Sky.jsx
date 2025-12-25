@@ -155,7 +155,6 @@ export default function Sky() {
                 const blob = await toBlob(linkCardRef.current, { 
                     cacheBust: true, 
                     pixelRatio: 2, // High quality
-                    backgroundColor: '#020617'
                 })
                 
                 if (!blob) throw new Error("Blob generation failed")
@@ -206,8 +205,7 @@ export default function Sky() {
             if (mode === 'download') {
                 const dataUrl = await toPng(ref.current, { 
                     cacheBust: true, 
-                    pixelRatio: 2,
-                    backgroundColor: '#020617'
+                    pixelRatio: 2
                 })
                 const link = document.createElement('a')
                 link.download = `zola-${type}.png`; link.href = dataUrl; link.click()
@@ -223,8 +221,7 @@ export default function Sky() {
 
                         const blob = await toBlob(ref.current, { 
                             cacheBust: true, 
-                            pixelRatio: 2,
-                            backgroundColor: '#020617'
+                            pixelRatio: 2
                         })
                         
                         if (!blob) throw new Error("Blob generation failed")
