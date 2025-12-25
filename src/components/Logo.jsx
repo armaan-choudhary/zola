@@ -2,8 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const Logo = ({ size = 40, className = "" }) => {
-  const strokeWidth = 2.5;
-  const starRadius = 3.5;
+  const strokeWidth = 4.5;
+  const starRadius = 6.5;
   
   const points = [
     { x: 25, y: 25 },
@@ -27,7 +27,7 @@ const Logo = ({ size = 40, className = "" }) => {
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
-          opacity="0.6"
+          opacity="1"
         />
         {points.map((pt, i) => (
           <circle

@@ -45,15 +45,17 @@ export default function Sky() {
     const jsConfettiRef = useRef(null)
     const lastTriggeredStarId = useRef(null)
 
-    const NEW_YEAR = new Date('2026-01-01T00:00:00')
+    const NEW_YEAR = new Date('2025-01-01T00:00:00')
     const isRevealed = new Date() >= NEW_YEAR
+
+    const [showProgress, setShowProgress] = useState(false)
 
     const getSkyTier = () => {
         const count = allStars.length
-        if (count < 10) return { id: 1, name: "First Spark", intensity: 1 }
-        if (count < 25) return { id: 2, name: "Astral Awakening", intensity: 1.5 }
-        if (count < 50) return { id: 3, name: "Supernova Bloom", intensity: 2 }
-        return { id: 4, name: "Infinite Galaxy", intensity: 3 }
+        if (count < 10) return { id: 1, name: "First Spark", intensity: 1, color: '#94a3b8', next: 10 }
+        if (count < 25) return { id: 2, name: "Astral Awakening", intensity: 1.5, color: '#60a5fa', next: 25 }
+        if (count < 50) return { id: 3, name: "Supernova Bloom", intensity: 2, color: '#fbbf24', next: 50 }
+        return { id: 4, name: "Infinite Galaxy", intensity: 3, color: '#22d3ee', next: null }
     }
     const skyTier = getSkyTier()
 
@@ -261,7 +263,11 @@ export default function Sky() {
         } catch (err) {
             if (err.name !== 'AbortError') {
                 console.error("Operation failed:", err)
-                showToast("Could not complete operation ✨")
+                if (isMobile) {
+                    showToast("Sharing failed. Try opening this link in Safari or Chrome for full support! ✨")
+                } else {
+                    showToast("Could not complete operation ✨")
+                }
             }
         } finally {
             setSharing(false)
@@ -343,33 +349,90 @@ export default function Sky() {
 
     return (
         <div className="sky-container">
-            <div style={{ position: 'fixed', inset: 0, background: `radial-gradient(circle, transparent 40%, ${skyTier.id >= 3 ? 'var(--accent)' : 'transparent'} 150%)`, opacity: skyTier.id >= 3 ? 0.15 : 0, pointerEvents: 'none', zIndex: 1, transition: 'opacity 3s ease' }} />
+            <div style={{ position: 'fixed', inset: 0, background: `radial-gradient(circle, transparent 40%, ${skyTier.id >= 3 ? skyTier.color : 'transparent'} 150%)`, opacity: skyTier.id >= 3 ? 0.12 : 0, pointerEvents: 'none', zIndex: 1, transition: 'opacity 3s ease, background 3s ease' }} />
             {skyTier.id >= 3 && (
-                <motion.div animate={{ opacity: [0, 0.08, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 1, background: 'var(--accent)' }} />
+                <motion.div 
+                    key={`vignette-${skyTier.id}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 0.06, 0] }} 
+                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} 
+                    style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 1, background: skyTier.color }} 
+                />
             )}
             <AnimatePresence>{toast && (
                 <motion.div initial={{ opacity: 0, y: 50, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 50, x: '-50%' }} className="toast">{toast}</motion.div>
             )}</AnimatePresence>
 
-            <nav className="navbar" style={{ paddingRight: '20px', paddingLeft: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 'var(--nav-height)', pointerEvents: 'none' }}>
-                <Link to="/" className="brand" style={{ display: 'flex', alignItems: 'center', height: '100%', width: '80px', justifyContent: 'flex-start', pointerEvents: 'auto' }}>
-                    <Logo size={32} />
+            <nav className="navbar" style={{ paddingRight: '15px', paddingLeft: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 'var(--nav-height)', pointerEvents: 'none' }}>
+                <Link to="/" className="brand" style={{ display: 'flex', alignItems: 'center', height: '100%', width: 'auto', justifyContent: 'flex-start', pointerEvents: 'auto' }}>
+                    <Logo size={window.innerWidth < 600 ? 24 : 32} />
                 </Link>
-                <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', flex: 1 }}>
+                <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', flex: 1, minWidth: 0, padding: '0 10px' }}>
                     <div className="sky-title" style={{ padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: '0.65rem', opacity: 0.6, display: 'block', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1 }}>{getGreeting()}</span>
-                        <span style={{ lineHeight: 1.2 }}>{creatorName}'s Sky</span>
+                        <span style={{ fontSize: '0.6rem', opacity: 0.6, display: 'block', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1 }}>{getGreeting()}</span>
+                        <span style={{ lineHeight: 1.2, fontSize: window.innerWidth < 600 ? '0.9rem' : '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{creatorName}'s Sky</span>
                     </div>
-                    <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)', opacity: 0.5, marginTop: '2px', lineHeight: 1 }}>
+                    <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)', opacity: 0.5, marginTop: '2px', lineHeight: 1 }}>
                         {isRevealed ? getSkyMood() : `Revealing in ${timeLeft}`}
                     </div>
                 </div>
-                <div className="tier-container" title={`${allStars.length} Stars Received`} style={{ width: '80px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', cursor: 'help', pointerEvents: 'auto' }}>
-                    <div style={{ fontSize: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.6, marginBottom: '8px', textAlign: 'right', lineHeight: 1 }}>{skyTier.name}</div>
-                    <div style={{ width: '46px', height: '3px', background: 'var(--glass-border)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <motion.div animate={{ width: `${Math.min((allStars.length / 50) * 100, 100)}%` }} style={{ height: '100%', background: skyTier.id >= 3 ? 'linear-gradient(90deg, #fff, var(--accent))' : 'linear-gradient(90deg, #94a3b8, #fff)', boxShadow: skyTier.id >= 3 ? '0 0 8px var(--accent)' : 'none' }} />
+                <div 
+                    className="tier-container" 
+                    title={`${allStars.length} Stars Received`} 
+                    onMouseEnter={() => setShowProgress(true)}
+                    onMouseLeave={() => setShowProgress(false)}
+                    onClick={() => setShowProgress(!showProgress)}
+                    style={{ width: window.innerWidth < 600 ? '100px' : '140px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', cursor: 'pointer', pointerEvents: 'auto', overflow: 'hidden' }}
+                >
+                    <AnimatePresence mode="wait">
+                        {showProgress ? (
+                            <motion.div 
+                                key="progress-count"
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 0.8, y: 0 }}
+                                exit={{ opacity: 0, y: -5 }}
+                                style={{ fontSize: '0.5rem', textTransform: 'uppercase', letterSpacing: '2px', color: '#fff', marginBottom: '2px', textAlign: 'right', fontWeight: 800 }}
+                            >
+                                {allStars.length} {skyTier.next ? `/ ${skyTier.next}` : ''} STARS
+                            </motion.div>
+                        ) : (
+                            <motion.div 
+                                key={`phase-${skyTier.id}`}
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 0.6, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                transition={{ duration: 0.4 }}
+                                style={{ fontSize: '0.5rem', textTransform: 'uppercase', letterSpacing: '4px', color: skyTier.color, marginBottom: '2px', textAlign: 'right', fontWeight: 800 }}
+                            >
+                                PHASE 0{skyTier.id}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                    
+                    <AnimatePresence mode="wait">
+                        <motion.div 
+                            key={`name-${skyTier.id}`}
+                            initial={{ opacity: 0, x: 15 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -15 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px', textAlign: 'right', lineHeight: 1, fontWeight: 700, color: skyTier.id === 2 ? '#ffffff' : skyTier.color }}
+                        >
+                            {skyTier.name}
+                        </motion.div>
+                    </AnimatePresence>
+
+                    <div style={{ width: '46px', height: '3px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <motion.div 
+                            animate={{ 
+                                width: `${Math.min((allStars.length / 50) * 100, 100)}%`,
+                                background: skyTier.id >= 2 ? `linear-gradient(90deg, #fff, ${skyTier.color})` : '#94a3b8',
+                                boxShadow: skyTier.id >= 2 ? `0 0 8px ${skyTier.color}80` : 'none'
+                            }} 
+                            transition={{ duration: 1, ease: "easeInOut" }}
+                            style={{ height: '100%' }} 
+                        />
                     </div>
-                    <div className="tier-count" style={{ fontSize: '0.45rem', opacity: 0, transition: 'opacity 0.2s', marginTop: '2px', color: 'var(--accent)', lineHeight: 1 }}>{allStars.length} STARS</div>
                 </div>
             </nav>
 
@@ -475,24 +538,44 @@ export default function Sky() {
                             padding: 0,
                             position: 'relative',
                             overflow: 'hidden',
-                            border: `2px solid ${getStarColor(selectedStar.style)}40`,
+                            border: `3px solid ${getStarColor(selectedStar.style)}60`,
                             background: 'rgba(20, 20, 30, 0.98)',
-                            boxShadow: `0 30px 60px rgba(0,0,0,0.5), 0 0 40px ${getStarColor(selectedStar.style)}15`,
+                            boxShadow: `0 30px 60px rgba(0,0,0,0.5)`,
                             textAlign: 'left'
                         }}
                     >
+                        {/* Star Counter Pill */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '20px',
+                            right: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            padding: '4px 10px',
+                            borderRadius: '10px',
+                            backdropFilter: 'blur(4px)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            opacity: 0.8,
+                            zIndex: 10
+                        }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#f1f5f9' }}>{allStars.length}</span>
+                            <Star star={{ style: selectedStar.style }} static size={8} />
+                        </div>
+
                         {/* Background Stars Decoration */}
                         {backgroundStars.map((s, i) => (
-                            <div key={i} style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%`, width: `${s.size}px`, height: `${s.size}px`, background: 'white', borderRadius: '50%', opacity: 0.15 }} />
+                            <div key={i} style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%`, width: `${s.size}px`, height: `${s.size}px`, background: 'white', borderRadius: '50%', opacity: 0.2 }} />
                         ))}
                         
                         {/* Tier-based vignette overlay */}
                         <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle, transparent 40%, ${skyTier.id >= 3 ? '#fbbf24' : 'transparent'} 150%)`, opacity: skyTier.id >= 3 ? 0.1 : 0, pointerEvents: 'none' }} />
 
-                        <button onClick={() => setSelectedStar(null)} style={{ position: 'absolute', top: '15px', right: '15px', background: 'transparent', width: 'auto', padding: '5px', margin: 0, border: 'none', color: 'var(--text-secondary)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '24px' }}><FaTimes size={18} /></button>
+                        <button onClick={() => setSelectedStar(null)} style={{ position: 'absolute', top: '15px', left: '15px', background: 'transparent', width: 'auto', padding: '5px', margin: 0, border: 'none', color: 'var(--text-secondary)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '24px' }}><FaTimes size={18} /></button>
                         
-                        <div style={{ textAlign: 'center', opacity: 0.5, paddingTop: '20px', marginBottom: '-10px', position: 'relative', zIndex: 1 }}>
-                            <Logo size={24} />
+                        <div style={{ textAlign: 'center', opacity: 1, paddingTop: '30px', marginBottom: '-10px', position: 'relative', zIndex: 1 }}>
+                            <Logo size={32} />
                         </div>
 
                         {isRevealed ? (
@@ -530,12 +613,12 @@ export default function Sky() {
                                 </div>
 
                                 <div style={{ 
-                                    background: getStarColor(selectedStar.style), 
+                                    background: '#ffffff', 
                                     height: '40px', 
                                     display: 'flex', 
                                     alignItems: 'center', 
                                     justifyContent: 'center', 
-                                    color: ['classic', 'gold', 'green'].includes(selectedStar.style) ? '#020617' : '#ffffff', 
+                                    color: '#020617', 
                                     fontWeight: 700, 
                                     fontSize: '0.75rem', 
                                     letterSpacing: '2px', 
@@ -554,9 +637,9 @@ export default function Sky() {
                 </div>
             )}
 
-            {selectedStar && <StoryCard ref={starCardRef} type="star" data={selectedStar} creatorName={creatorName} skyTier={skyTier} />}
-            {allStars.length > 0 && <StoryCard ref={skyCardRef} type="constellation" data={displayedStars} creatorName={creatorName} lines={lines} skyTier={skyTier} />}
-            <StoryCard ref={linkCardRef} type="link-only" creatorName={creatorName} />
+            {selectedStar && <StoryCard ref={starCardRef} type="star" data={selectedStar} creatorName={creatorName} skyTier={skyTier} totalStars={allStars.length} />}
+            {allStars.length > 0 && <StoryCard ref={skyCardRef} type="constellation" data={displayedStars} creatorName={creatorName} lines={lines} skyTier={skyTier} totalStars={allStars.length} />}
+            <StoryCard ref={linkCardRef} type="link-only" creatorName={creatorName} totalStars={allStars.length} />
             {needsRefresh && (<div className="refresh-indicator"><p>Size changed. Please refresh.</p><button onClick={() => window.location.reload()}>Refresh</button></div>)}
         </div>
     )
