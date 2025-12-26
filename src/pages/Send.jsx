@@ -88,7 +88,7 @@ export default function Send() {
   }
 
   return (
-    <div className="container">
+    <div className="container" style={{ paddingTop: 'var(--nav-height)', minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <AnimatePresence>
         {toast && (
           <motion.div 

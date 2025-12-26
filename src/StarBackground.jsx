@@ -24,13 +24,12 @@ function ShootingStars({ tier }) {
     }
 
     // Determine frequency based on tier
-    // Tier 1: Low, Tier 4: High
-    let probability = 0.3
-    let intervalTime = 3000
+    let probability = 0.5
+    let intervalTime = 2000
 
-    if (tier === 2) { probability = 0.5; intervalTime = 2500; }
-    if (tier === 3) { probability = 0.7; intervalTime = 2000; }
-    if (tier === 4) { probability = 0.9; intervalTime = 1000; }
+    if (tier === 2) { probability = 0.6; intervalTime = 1500; }
+    if (tier === 3) { probability = 0.8; intervalTime = 1000; }
+    if (tier === 4) { probability = 0.95; intervalTime = 800; }
 
     const interval = setInterval(() => {
       if (Math.random() < probability) createStar()
@@ -68,12 +67,12 @@ export default function StarBackground() {
     const isMobile = window.innerWidth < 600
     
     // Base counts
-    let baseCount = isMobile ? 30 : 60
+    let baseCount = isMobile ? 100 : 200
     
     // Scale by tier
-    if (tier === 2) baseCount = isMobile ? 50 : 100
-    if (tier === 3) baseCount = isMobile ? 80 : 150
-    if (tier === 4) baseCount = isMobile ? 120 : 200
+    if (tier === 2) baseCount = isMobile ? 120 : 240
+    if (tier === 3) baseCount = isMobile ? 150 : 300
+    if (tier === 4) baseCount = isMobile ? 200 : 400
 
     const newStars = Array.from({ length: baseCount }).map((_, i) => ({
       id: i,

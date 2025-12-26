@@ -17,7 +17,7 @@ export default function App() {
         <TimeTheme />
         <StarBackground />
         <Snowfall 
-          snowflakeCount={isMobile ? 10 : 30} 
+          snowflakeCount={isMobile ? 18 : 50} 
           speed={[0.2, 0.5]} 
           wind={[-0.2, 0.2]} 
           radius={[0.5, 2.0]}

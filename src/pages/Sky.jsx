@@ -424,7 +424,8 @@ export default function Sky() {
     return (
         <div className="sky-container">
             <motion.div 
-                animate={skyTier.id === 4 ? { opacity: [0.25, 0.45, 0.25] } : { opacity: skyTier.id >= 3 ? 0.15 : 0 }}
+                initial={{ opacity: 0 }}
+                animate={skyTier.id === 4 ? { opacity: [0.25, 0.45, 0.25] } : { opacity: skyTier.id >= 3 ? 0.1 : 0 }}
                 transition={skyTier.id === 4 ? { duration: 6, repeat: Infinity, ease: "easeInOut" } : { duration: 3 }}
                 style={{ 
                 position: 'fixed', 
@@ -435,7 +436,7 @@ export default function Sky() {
                        radial-gradient(circle at 50% 85%, rgba(236, 72, 153, 0.18) 0%, transparent 50%),
                        radial-gradient(circle at 80% 80%, rgba(251, 191, 36, 0.12) 0%, transparent 40%),
                        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 40%)`
-                    : `radial-gradient(circle, transparent 40%, ${skyTier.id >= 3 ? skyTier.color : 'transparent'} 150%)`, 
+                    : `radial-gradient(circle, transparent 60%, ${skyTier.id >= 3 ? skyTier.color : 'transparent'} 150%)`, 
                 pointerEvents: 'none', 
                 zIndex: 1, 
             }} />
