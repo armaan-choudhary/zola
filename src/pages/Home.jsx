@@ -3,18 +3,24 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { motion } from 'framer-motion'
 import Logo from '../components/Logo'
+import { useTier } from '../context/TierContext'
 
 export default function Home() {
 
   const navigate = useNavigate()
-
-  const [creatorName, setCreatorName] = useState('')
-
-  const [globalStars, setGlobalStars] = useState(0)
-
-
+  const { setTier } = useTier()
 
   useEffect(() => {
+    setTier(1)
+  }, [setTier])
+
+  const [creatorName, setCreatorName] = useState('')
+  const [globalStars, setGlobalStars] = useState(0)
+  const [mySkySlug, setMySkySlug] = useState(null)
+
+  useEffect(() => {
+    const savedSky = localStorage.getItem('zola_my_sky')
+    if (savedSky) setMySkySlug(savedSky)
 
     const fetchGlobalCount = async () => {
 
@@ -60,11 +66,12 @@ export default function Home() {
       return
     }
 
+    localStorage.setItem('zola_my_sky', slug)
     navigate(`/c/${slug}`)
   }
 
   return (
-    <div className="container" style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+    <div className="container" style={{ minHeight: '100dvh', margin: 0, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
       <motion.div 
         initial={{ opacity: 0, y: -20 }} 
         animate={{ opacity: 1, y: 0 }} 
@@ -73,18 +80,44 @@ export default function Home() {
       >
         <Logo size={100} />
       </motion.div>
-      <motion.p 
-        style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}
-        initial={{ opacity: 0, y: -20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        A New Year constellation of messages.
-      </motion.p>
+            <motion.p 
+              style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}
+              initial={{ opacity: 0, y: -20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              A New Year constellation of messages.
+            </motion.p>
       
-      <motion.div 
-        className="tutorial-steps"
-        initial={{ opacity: 0 }}
+            {mySkySlug && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                style={{ width: '100%', maxWidth: '340px', marginBottom: '2rem', textAlign: 'center' }}
+              >
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '10px' }}>Welcome back</p>
+                <button 
+                  onClick={() => navigate(`/c/${mySkySlug}`)}
+                  style={{ 
+                    background: 'var(--accent)', 
+                    color: 'var(--bg-dark)', 
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    boxShadow: '0 10px 30px rgba(251, 191, 36, 0.3)'
+                  }}
+                >
+                  <span>✨</span> Open My Sky <span>✨</span>
+                </button>
+                <div style={{ width: '100%', height: '1px', background: 'var(--glass-border)', marginTop: '2rem' }} />
+              </motion.div>
+            )}
+            
+            <motion.div 
+              className="tutorial-steps"        initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4, duration: 1 }}
       >

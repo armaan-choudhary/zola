@@ -5,10 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FaCircle, FaSquare, FaPlay, FaStar, FaHeart, FaGem } from 'react-icons/fa'
 import Loader from '../components/Loader'
 import Logo from '../components/Logo'
+import { useTier } from '../context/TierContext'
 
 export default function Send() {
   const { slug } = useParams()
   const navigate = useNavigate()
+  const { setTier } = useTier()
+  
+  useEffect(() => {
+    setTier(1)
+  }, [setTier])
+
   // Changed 'pointers' to 'shape' in state
   const [form, setForm] = useState({ message: '', name: '', emoji: '✨', style: 'classic', shape: 'FaCircle' })
   const [loading, setLoading] = useState(false)

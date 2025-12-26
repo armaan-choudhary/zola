@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useTier } from './context/TierContext'
 
 /**
  * ShootingStars Component
  * Renders occasional shooting star animations for atmospheric depth.
  */
-function ShootingStars() {
+function ShootingStars({ tier }) {
   const [shootingStars, setShootingStars] = useState([])
 
   useEffect(() => {
@@ -22,13 +23,21 @@ function ShootingStars() {
       }, 2000)
     }
 
-    // Spawn a shooting star randomly every 3 seconds
+    // Determine frequency based on tier
+    // Tier 1: Low, Tier 4: High
+    let probability = 0.3
+    let intervalTime = 3000
+
+    if (tier === 2) { probability = 0.5; intervalTime = 2500; }
+    if (tier === 3) { probability = 0.7; intervalTime = 2000; }
+    if (tier === 4) { probability = 0.9; intervalTime = 1000; }
+
     const interval = setInterval(() => {
-      if (Math.random() > 0.7) createStar()
-    }, 3000)
+      if (Math.random() < probability) createStar()
+    }, intervalTime)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [tier])
 
   return (
     <>
@@ -53,12 +62,20 @@ function ShootingStars() {
  */
 export default function StarBackground() {
   const [stars, setStars] = useState([])
+  const { tier } = useTier()
 
   useEffect(() => {
     const isMobile = window.innerWidth < 600
-    // Dynamic star count for performance vs aesthetics
-    const starCount = isMobile ? 30 : 100
-    const newStars = Array.from({ length: starCount }).map((_, i) => ({
+    
+    // Base counts
+    let baseCount = isMobile ? 30 : 60
+    
+    // Scale by tier
+    if (tier === 2) baseCount = isMobile ? 50 : 100
+    if (tier === 3) baseCount = isMobile ? 80 : 150
+    if (tier === 4) baseCount = isMobile ? 120 : 200
+
+    const newStars = Array.from({ length: baseCount }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -68,7 +85,7 @@ export default function StarBackground() {
       opacity: Math.random() * 0.3 + 0.1
     }))
     setStars(newStars)
-  }, [])
+  }, [tier])
 
   return (
     <div className="star-bg-layer">
@@ -90,7 +107,7 @@ export default function StarBackground() {
           }
         `}
       </style>
-      <ShootingStars />
+      <ShootingStars tier={tier} />
       {stars.map((star) => (
         <div
           key={star.id}

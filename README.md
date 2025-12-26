@@ -6,15 +6,14 @@ A beautiful, interactive New Year constellation of messages. ZOLA allows you to 
 
 ## 🌌 Features
 
--   **Celestial Constellations:** Every message you receive becomes a star. ZOLA's algorithm automatically connects them to form a stunning, unique constellation.
--   **Brand Identity:** Features a unique, interactive "Z" constellation logo mark that twinkles and pulses.
--   **The Global Cosmos:** A real-time home page counter showing how many "stars the universe is currently holding" across the entire world.
--   **Digital Time Capsule:** Messages are locked behind a "Locked" state until New Year's Day (Jan 1, 2026).
--   **Highly Customizable:** Senders can choose the star's shape (Circle, Star, Heart, etc.), color, and emoji.
-- **Social-Ready Sharing:** Integrated with the **Native Web Share API**. Generate and share high-quality cards for Instagram Stories. Features an automatic "Link Sticker" clipboard hack for a better social loop.
-- **Unified Visuals:** Seamless design consistency between the app's interactive modals and the generated shared images.
-- **Immersive Atmosphere:** Features drifting background stars, shooting stars, organic nebula clouds, and snowfall.
-- **Polished UI:** Perfectly centered "glassmorphism" aesthetic with responsive design using modern `100dvh` viewport units.
+- **Celestial Constellations:** Every message becomes a star. ZOLA uses a robust, single-hub tree expansion algorithm (starting from the oldest star) to form a unique, loop-free constellation.
+- **Adaptive Tier Evolution:** The sky evolves through 4 distinct phases. Phase 04 (Infinite Galaxy) features a vibrant multi-colored pulsating atmosphere, energy-pulsing gradient lines, and rotating celestial arcs around stars.
+- **Session Persistence:** Integrated `localStorage` allows users visiting from Instagram/TikTok in-app browsers to easily return to their created sky via a "Welcome Back" recovery button.
+- **Brand Identity:** Bold, interactive branding with high-contrast, standardized footers across all shared artifacts.
+- **Digital Time Capsule:** Messages are locked behind a "Locked" state until New Year's Day (Jan 1, 2026).
+- **Highly Customizable:** Senders choose star shape, color, and emoji.
+- **Social-Ready Sharing:** Optimized 500x750 high-quality artifact cards for Instagram Stories with 6px sharp borders and standardized branding.
+- **Polished UI:** Mobile-first design using `100dvh`, responsive star sizing, and optimized static gradients for smooth performance on all devices.
 
 ## 🛠️ Tech Stack
 

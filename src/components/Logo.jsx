@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const Logo = ({ size = 40, className = "" }) => {
-  const strokeWidth = 4.5;
-  const starRadius = 6.5;
+const Logo = ({ size = 40, color = "white", className = "" }) => {
+  const strokeWidth = 8;
+  const starRadius = 8;
   
   const points = [
     { x: 25, y: 25 },
@@ -23,7 +23,7 @@ const Logo = ({ size = 40, className = "" }) => {
         <path
           d="M 25 25 L 75 25 L 25 75 L 75 75"
           fill="transparent"
-          stroke="white"
+          stroke={color}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -35,15 +35,15 @@ const Logo = ({ size = 40, className = "" }) => {
             cx={pt.x}
             cy={pt.y}
             r={starRadius}
-            fill="white"
+            fill={color}
           />
         ))}
       </svg>
       <span style={{ 
         fontSize: size * 0.6, 
-        fontWeight: 300, 
+        fontWeight: 800, 
         letterSpacing: '2px', 
-        color: 'white',
+        color: color,
         textTransform: 'uppercase',
         fontFamily: "'Space Grotesk', sans-serif",
         marginLeft: `-${(size * 0.25) - 8}px`,

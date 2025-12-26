@@ -9,6 +9,7 @@ import StoryCard from '../components/StoryCard'
 import Loader from '../components/Loader'
 import Logo from '../components/Logo'
 import { FaTimes, FaChevronLeft, FaChevronRight, FaShareAlt, FaDownload } from 'react-icons/fa'
+import { useTier } from '../context/TierContext'
 
 const getStarColor = (style) => {
   switch (style) {
@@ -24,6 +25,7 @@ const getStarColor = (style) => {
 
 export default function Sky() {
     const { slug } = useParams()
+    const { setTier } = useTier()
     const [searchParams, setSearchParams] = useSearchParams()
     const [allStars, setAllStars] = useState([])
     const currentPage = parseInt(searchParams.get('page') || '1')
@@ -33,7 +35,6 @@ export default function Sky() {
     const [selectedStar, setSelectedStar] = useState(null)
     const [creatorName, setCreatorName] = useState('')
     const [loading, setLoading] = useState(true)
-    const [needsRefresh, setNeedsRefresh] = useState(false)
     const [toast, setToast] = useState(null)
     const [timeLeft, setTimeLeft] = useState('')
 
@@ -58,6 +59,10 @@ export default function Sky() {
         return { id: 4, name: "Infinite Galaxy", intensity: 3, color: '#22d3ee', next: null }
     }
     const skyTier = getSkyTier()
+
+    useEffect(() => {
+        setTier(skyTier.id)
+    }, [skyTier.id, setTier])
 
     const backgroundStars = [
         { x: 10, y: 15, size: 2 }, { x: 85, y: 10, size: 3 }, { x: 30, y: 40, size: 2 },
@@ -125,18 +130,10 @@ export default function Sky() {
     }, [])
 
     useEffect(() => {
-        let lastWidth = window.innerWidth
-        const handleResize = () => {
-            if (Math.abs(window.innerWidth - lastWidth) > 50) {
-                setNeedsRefresh(true)
-                lastWidth = window.innerWidth
-            }
-        }
-        window.addEventListener('resize', handleResize)
         const channel = supabase.channel('sky-realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stars' }, (payload) => {
             if (payload.new && payload.new.sky_slug === slug) window.location.reload()
         }).subscribe()
-        return () => { window.removeEventListener('resize', handleResize); supabase.removeChannel(channel); }
+        return () => { supabase.removeChannel(channel); }
     }, [slug])
 
     const handleShareLink = async () => {
@@ -303,14 +300,32 @@ export default function Sky() {
 
     const calculateConstellation = (starData) => {
         if (starData.length < 2) { setLines([]); return; }
+        
+        // Helper for deterministic randomness based on IDs
+        const getHash = (val) => {
+            const str = String(val);
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) hash = (hash << 5) - hash + str.charCodeAt(i);
+            return Math.abs(hash);
+        }
+
         const edges = []
         for (let i = 0; i < starData.length; i++) {
             for (let j = i + 1; j < starData.length; j++) {
                 const s1 = starData[i], s2 = starData[j]
-                edges.push({ p1: s1, p2: s2, dist: Math.hypot(s1.pos_x - s2.pos_x, s1.pos_y - s2.pos_y) })
+                const realDist = Math.hypot(s1.pos_x - s2.pos_x, s1.pos_y - s2.pos_y)
+                
+                // Add uniqueness jitter (+/- 15%)
+                const seed = getHash(`${s1.id}-${s2.id}`)
+                const jitter = 0.85 + ((seed % 30) / 100) 
+                
+                edges.push({ p1: s1, p2: s2, dist: realDist * jitter, realDist: realDist })
             }
         }
-        edges.sort((a, b) => a.dist - b.dist)
+        
+        // Sort by distance (jittered)
+        const sortedEdges = edges.sort((a, b) => a.dist - b.dist)
+
         const parent = new Map()
         starData.forEach(s => parent.set(s.id, s.id))
         const find = (id) => {
@@ -322,19 +337,80 @@ export default function Sky() {
             if (r1 !== r2) { parent.set(r1, r2); return true; }
             return false;
         }
+        
         const degrees = new Map(), valid = []
-        for (let e of edges) {
-            const d1 = degrees.get(e.p1.id) || 0, d2 = degrees.get(e.p2.id) || 0
-            if (find(e.p1.id) !== find(e.p2.id) && d1 < 2 && d2 < 2) {
-                union(e.p1.id, e.p2.id); degrees.set(e.p1.id, d1+1); degrees.set(e.p2.id, d2+1); valid.push(e)
+        let hubId = null;
+
+        // Pass 1: Strict "Single Hub" Logic
+        for (let e of sortedEdges) {
+            if (find(e.p1.id) !== find(e.p2.id)) {
+                const d1 = degrees.get(e.p1.id) || 0
+                const d2 = degrees.get(e.p2.id) || 0
+                const nextD1 = d1 + 1
+                const nextD2 = d2 + 1
+
+                // Constraint Check
+                let allow = true
+                
+                // Absolute max is 3
+                if (nextD1 > 3 || nextD2 > 3) allow = false
+                
+                // Single Hub Rule:
+                // If a node is about to reach degree 3, it must be the hub (or the slot must be open)
+                if (allow && nextD1 === 3) {
+                    if (hubId !== null && hubId !== e.p1.id) allow = false;
+                }
+                if (allow && nextD2 === 3) {
+                    if (hubId !== null && hubId !== e.p2.id) allow = false;
+                }
+
+                if (allow) {
+                    union(e.p1.id, e.p2.id);
+                    degrees.set(e.p1.id, nextD1);
+                    degrees.set(e.p2.id, nextD2);
+                    valid.push(e);
+
+                    // Assign Hub ID if we just created a degree-3 node
+                    if (nextD1 === 3) hubId = e.p1.id;
+                    if (nextD2 === 3) hubId = e.p2.id;
+                }
             }
         }
-        let groups = new Set(starData.map(s => find(s.id))).size
-        if (groups > 1) {
-            for (let e of edges) {
-                if (find(e.p1.id) !== find(e.p2.id)) { union(e.p1.id, e.p2.id); valid.push(e); groups--; if (groups === 1) break; }
+        
+        // Pass 2: Iterative Repair to Guarantee 100% Connectivity
+        // Keep merging components until only 1 connected component remains
+        while (true) {
+            const rootSet = new Set(starData.map(s => find(s.id)))
+            if (rootSet.size <= 1) break; // Fully connected!
+
+            let bestEdge = null;
+            let minDistance = Infinity;
+
+            // Find the single shortest edge that connects two DIFFERENT components
+            // This is inefficient (O(E)) but safe and necessary for guaranteed connectivity
+            for (let e of sortedEdges) {
+                if (find(e.p1.id) !== find(e.p2.id)) {
+                    if (e.dist < minDistance) {
+                        minDistance = e.dist;
+                        bestEdge = e;
+                        // Optimization: Since edges are sorted, the first valid bridge IS the best one.
+                        break; 
+                    }
+                }
+            }
+
+            if (bestEdge) {
+                union(bestEdge.p1.id, bestEdge.p2.id);
+                // Update degrees for tracking, though we ignore limits here
+                degrees.set(bestEdge.p1.id, (degrees.get(bestEdge.p1.id)||0)+1);
+                degrees.set(bestEdge.p2.id, (degrees.get(bestEdge.p2.id)||0)+1);
+                valid.push(bestEdge);
+            } else {
+                // Should never happen if the graph is connected, but avoids infinite loops
+                break; 
             }
         }
+
         setLines(valid)
     }
 
@@ -343,10 +419,26 @@ export default function Sky() {
     const totalPages = Math.ceil(allStars.length / STARS_PER_PAGE)
     const startIndex = (currentPage - 1) * STARS_PER_PAGE
     const displayedStars = allStars.slice(startIndex, startIndex + STARS_PER_PAGE)
+    const isMobile = window.innerWidth < 600
 
     return (
         <div className="sky-container">
-            <div style={{ position: 'fixed', inset: 0, background: `radial-gradient(circle, transparent 40%, ${skyTier.id >= 3 ? skyTier.color : 'transparent'} 150%)`, opacity: skyTier.id >= 3 ? 0.12 : 0, pointerEvents: 'none', zIndex: 1, transition: 'opacity 3s ease, background 3s ease' }} />
+            <motion.div 
+                animate={skyTier.id === 4 ? { opacity: [0.25, 0.45, 0.25] } : { opacity: skyTier.id >= 3 ? 0.15 : 0 }}
+                transition={skyTier.id === 4 ? { duration: 6, repeat: Infinity, ease: "easeInOut" } : { duration: 3 }}
+                style={{ 
+                position: 'fixed', 
+                inset: 0, 
+                background: skyTier.id === 4 
+                    ? `radial-gradient(circle at 15% 20%, rgba(34, 211, 238, 0.25) 0%, transparent 50%),
+                       radial-gradient(circle at 85% 15%, rgba(167, 139, 250, 0.2) 0%, transparent 50%),
+                       radial-gradient(circle at 50% 85%, rgba(236, 72, 153, 0.18) 0%, transparent 50%),
+                       radial-gradient(circle at 80% 80%, rgba(251, 191, 36, 0.12) 0%, transparent 40%),
+                       radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 40%)`
+                    : `radial-gradient(circle, transparent 40%, ${skyTier.id >= 3 ? skyTier.color : 'transparent'} 150%)`, 
+                pointerEvents: 'none', 
+                zIndex: 1, 
+            }} />
             {skyTier.id >= 3 && (
                 <motion.div 
                     key={`vignette-${skyTier.id}`}
@@ -433,7 +525,7 @@ export default function Sky() {
                 </div>
             </nav>
 
-            <motion.div ref={skyRef} className="sky-content" animate={skyTier.id >= 4 ? { y: [0, -10, 0], x: [0, 5, 0], rotate: [0, 0.5, 0] } : {}} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <motion.div ref={skyRef} className="sky-content" style={{ position: 'absolute', top: 'var(--nav-height)', left: 0, right: 0, bottom: 'var(--bottom-height)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {allStars.length === 0 ? (
                     <div style={{ textAlign: 'center', zIndex: 10 }}>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: 'var(--text-secondary)' }}>
@@ -444,8 +536,62 @@ export default function Sky() {
                 ) : (
                     <>
                         <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                            <defs>
+                                {skyTier.id === 2 && (
+                                    <linearGradient id="phase2-gradient" gradientUnits="userSpaceOnUse" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#60a5fa" />
+                                        <stop offset="100%" stopColor="#3b82f6" />
+                                    </linearGradient>
+                                )}
+                                {skyTier.id === 3 && (
+                                    <linearGradient id="phase3-gradient" gradientUnits="userSpaceOnUse" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#fbbf24" />
+                                        <stop offset="100%" stopColor="#f59e0b" />
+                                    </linearGradient>
+                                )}
+                                {skyTier.id === 4 && (
+                                    <linearGradient id="phase4-gradient" gradientUnits="userSpaceOnUse" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#22d3ee" />
+                                        <stop offset="50%" stopColor="#a78bfa" />
+                                        <stop offset="100%" stopColor="#ec4899" />
+                                    </linearGradient>
+                                )}
+                            </defs>
                             {lines.map((line, i) => (
-                                <motion.line key={`${line.p1.id}-${line.p2.id}`} x1={`calc(${line.p1.pos_x}% + 6px)`} y1={`calc(${line.p1.pos_y}% + 6px)`} x2={`calc(${line.p2.pos_x}% + 6px)`} y2={`calc(${line.p2.pos_y}% + 6px)`} stroke="rgba(255, 255, 255, 0.3)" strokeWidth="1.5" animate={{ opacity: [0.2, 0.5, 0.2] }} transition={{ duration: 3, repeat: Infinity, delay: i * 0.1 }} />
+                                <motion.line 
+                                    key={`${line.p1.id}-${line.p2.id}`} 
+                                    x1={`${line.p1.pos_x}%`} 
+                                    y1={`${line.p1.pos_y}%`} 
+                                    x2={`${line.p2.pos_x}%`} 
+                                    y2={`${line.p2.pos_y}%`} 
+                                    stroke={
+                                        skyTier.id === 4 ? "url(#phase4-gradient)" : 
+                                        skyTier.id === 3 ? "url(#phase3-gradient)" :
+                                        skyTier.id === 2 ? "url(#phase2-gradient)" :
+                                        "rgba(255, 255, 255, 0.3)"
+                                    }
+                                    strokeWidth={isMobile ? "1.5" : "2.5"} 
+                                    vectorEffect="non-scaling-stroke"
+                                    animate={skyTier.id === 4 ? { 
+                                        opacity: [0.8, 1, 0.8], 
+                                        strokeWidth: isMobile ? [1.5, 2.5, 1.5] : [2.5, 3.5, 2.5] 
+                                    } : skyTier.id === 3 ? {
+                                        opacity: [0.4, 0.7, 0.4],
+                                        strokeWidth: isMobile ? [1, 1.8, 1] : [1.5, 2.5, 1.5]
+                                    } : { 
+                                        opacity: [0.3, 0.6, 0.3],
+                                        strokeWidth: isMobile ? [0.8, 0.8, 0.8] : [1.2, 1.2, 1.2]
+                                    }} 
+                                    transition={{ 
+                                        duration: 4, 
+                                        repeat: Infinity, 
+                                        delay: i * 0.2,
+                                        ease: "easeInOut" 
+                                    }} 
+                                    style={{
+                                        filter: skyTier.id >= 3 ? `drop-shadow(0 0 2px ${skyTier.color}60)` : 'none'
+                                    }}
+                                />
                             ))}
                         </svg>
                         {displayedStars.map((star) => (
@@ -515,8 +661,6 @@ export default function Sky() {
                 alignItems: 'center', 
                 justifyContent: 'center',
                 padding: window.innerWidth < 600 ? '15px 15px 25px 15px' : '20px 20px 30px 20px',
-                background: 'linear-gradient(to top, rgba(2, 6, 23, 0.95) 0%, rgba(2, 6, 23, 0.4) 100%)',
-                backdropFilter: 'blur(10px)',
                 pointerEvents: 'none'
             }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', pointerEvents: 'auto', width: 'auto', justifyContent: 'center' }}>
@@ -633,7 +777,6 @@ export default function Sky() {
             {selectedStar && <StoryCard ref={starCardRef} type="star" data={selectedStar} creatorName={creatorName} skyTier={skyTier} totalStars={allStars.length} />}
             {allStars.length > 0 && <StoryCard ref={skyCardRef} type="constellation" data={displayedStars} creatorName={creatorName} lines={lines} skyTier={skyTier} totalStars={allStars.length} />}
             <StoryCard ref={linkCardRef} type="link-only" creatorName={creatorName} totalStars={allStars.length} />
-            {needsRefresh && (<div className="refresh-indicator"><p>Size changed. Please refresh.</p><button onClick={() => window.location.reload()}>Refresh</button></div>)}
         </div>
     )
 }
