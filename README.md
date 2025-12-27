@@ -61,7 +61,9 @@ src/
 │   ├── Home.jsx      # Landing & Sky Creation
 │   ├── Sky.jsx       # The main interactive canvas (Constellations)
 │   ├── Send.jsx      # Form to add a star to a sky
-│   └── Demo.jsx      # Simulation mode for testing evolution
+│   ├── Demo.jsx      # Simulation mode for testing evolution
+│   ├── Debug.jsx     # Engine Demos & Menu
+│   └── CardsPreview.jsx # Artifact Gallery for testing shared cards
 └── StarBackground.jsx # The parallax background layer
 ```
 

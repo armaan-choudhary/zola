@@ -1,7 +1,7 @@
 import React from 'react';
 
 const Logo = ({ size = 40, color = "white", className = "" }) => {
-  const strokeWidth = 8;
+  const strokeWidth = 6;
   const starRadius = 8;
   
   const points = [
@@ -40,7 +40,7 @@ const Logo = ({ size = 40, color = "white", className = "" }) => {
       </svg>
       <span style={{ 
         fontSize: size * 0.6, 
-        fontWeight: 800, 
+        fontWeight: 300, 
         letterSpacing: '2px', 
         color: color,
         textTransform: 'uppercase',

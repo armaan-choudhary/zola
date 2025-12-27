@@ -134,12 +134,14 @@ export default function CardsPreview() {
 
             {galleryContent}
 
-            <div style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}>
-                <Link to="/debug">
-                    <button style={{ height: '36px', padding: '0 20px', fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)', border: '1px solid var(--glass-border)', color: '#fff', fontWeight: 700 }}>
-                        <FaCode style={{ marginRight: '8px' }} /> BACK TO DEBUG
-                    </button>
-                </Link>
+            <div style={{ position: 'fixed', bottom: '30px', left: '0', right: 0, display: 'flex', gap: '15px', justifyContent: 'center', zIndex: 100, pointerEvents: 'none' }}>
+                <div style={{ display: 'flex', gap: '10px', pointerEvents: 'auto' }}>
+                    <Link to="/debug">
+                        <button style={{ height: 36, padding: '0 20px', fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)', border: '1px solid var(--glass-border)', color: '#fff', fontWeight: 700 }}>
+                            <FaCode style={{ marginRight: '8px' }} /> BACK TO DEMOS
+                        </button>
+                    </Link>
+                </div>
             </div>
         </div>
     )

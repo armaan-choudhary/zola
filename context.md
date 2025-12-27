@@ -31,7 +31,7 @@ Zola is an interactive New Year application designed for users to share and rece
 - **Framework:** React (Vite)
 - **Backend/Database:** Supabase (PostgreSQL + Realtime)
 - **Analytics:** Vercel Analytics & Vercel Speed Insights
-- **Animations:** Framer Motion, JS Confetti
+- **Animations:** Framer Motion
 - **Styling:** CSS Variables, Glassmorphism, Mobile-first
 - **Visual Effects:** React Snowfall, Custom Nebula Gradients
 - **Icons:** React Icons (FaIcons)
@@ -39,7 +39,7 @@ Zola is an interactive New Year application designed for users to share and rece
 ## Architecture & Structure
 - `/src/components/Logo.jsx`: The core branding component featuring a twinkly SVG constellation.
 - `/src/components/StoryCard.jsx`: Unified component for generating shareable assets (Star, Constellation, and Link Invite).
-- `/src/pages/`: `Home.jsx` (Hero + Global Counter), `Sky.jsx` (Interactive Sky + Star Modal), `Send.jsx` (Wish form).
+- `/src/pages/`: `Home.jsx` (Hero), `Sky.jsx` (Interactive Sky), `Send.jsx` (Wish form), `Debug.jsx` (Engine Demos), `CardsPreview.jsx` (Artifact Gallery).
 - `/src/index.css`: Refactored, variable-driven CSS design system.
 
 ## Data Model

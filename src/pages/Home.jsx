@@ -113,8 +113,8 @@ export default function Home() {
         transition={{ delay: 0.4, duration: 1 }}
       >
         <div className="step"><span>1</span> Create your sky</div>
-        <div className="step"><span>2</span> Share your link</div>
-        <div className="step"><span>3</span> Watch the constellations grow</div>
+        <div className="step"><span>2</span> Watch constellations take shape</div>
+        <div className="step"><span>3</span> Light them up on New Year</div>
       </motion.div>
 
       <motion.div
@@ -131,6 +131,7 @@ export default function Home() {
           onChange={(e) => setCreatorName(e.target.value)}
         />
         <button onClick={createSky}>Create My Sky</button>
+        <p style={{ marginTop: '12px', fontSize: '0.75rem', opacity: 0.8, letterSpacing: '0.5px', color: 'var(--text-secondary)' }}>No signup. Takes 10 seconds.</p>
       </motion.div>
 
       <motion.div

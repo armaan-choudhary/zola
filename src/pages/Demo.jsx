@@ -310,7 +310,7 @@ export default function Demo() {
                     )}
                     <Link to="/debug">
                         <button style={{ height: 36, padding: '0 20px', fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)', border: '1px solid var(--glass-border)', color: '#fff', fontWeight: 700 }}>
-                            <FaCode style={{ marginRight: '8px' }} /> BACK TO DEBUG
+                            <FaCode style={{ marginRight: '8px' }} /> BACK TO DEMOS
                         </button>
                     </Link>
                 </div>

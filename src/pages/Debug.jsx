@@ -15,7 +15,7 @@ export default function Debug() {
             >
                 <Logo size={80} />
                 <h1 style={{ fontSize: '1.2rem', marginTop: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '4px' }}>
-                    Engine Debugger
+                    Engine Demos
                 </h1>
             </motion.div>
 
