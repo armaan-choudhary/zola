@@ -66,7 +66,7 @@ export default function Sky() {
     const chimeRef = useRef(null)
 
     // 3. Constants & Derived State
-    const NEW_YEAR = useMemo(() => new Date('2025-01-01T00:00:00'), [])
+    const NEW_YEAR = useMemo(() => new Date('2026-01-01T00:00:00'), [])
     const isRevealed = useMemo(() => new Date() >= NEW_YEAR, [NEW_YEAR])
 
     const skyTier = useMemo(() => {
