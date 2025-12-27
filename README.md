@@ -8,7 +8,7 @@ ZOLA is a real-time, interactive web experience where users create their own "Sk
 
 ## 🌟 The Vision (The Why)
 
-We wanted to create a digital space that feels more intimate and magical than a standard messaging app. ZOLA is designed to be:
+I wanted to create a digital space that feels more intimate and magical than a standard messaging app. ZOLA is designed to be:
 *   **Collaborative:** A shared artifact built by a community of friends.
 *   **Evolving:** The visual experience rewards participation; a lonely sky transforms into a vibrant galaxy.
 *   **Ephemeral yet Lasting:** Messages are locked until New Year's 2026 (configurable), turning the sky into a time capsule of wishes.
