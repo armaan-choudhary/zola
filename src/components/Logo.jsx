@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 const Logo = ({ size = 40, color = "white", className = "" }) => {
   const strokeWidth = 8;

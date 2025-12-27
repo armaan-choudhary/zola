@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
 import Logo from '../components/Logo'
 import { useTier } from '../context/TierContext'
@@ -16,32 +17,22 @@ export default function Home() {
 
   const [creatorName, setCreatorName] = useState('')
   const [globalStars, setGlobalStars] = useState(0)
-  const [mySkySlug, setMySkySlug] = useState(null)
+  const [mySkySlug] = useState(() => localStorage.getItem('zola_my_sky'))
 
   useEffect(() => {
-    const savedSky = localStorage.getItem('zola_my_sky')
-    if (savedSky) setMySkySlug(savedSky)
-
+    let isMounted = true;
     const fetchGlobalCount = async () => {
-
       const { count, error } = await supabase
-
         .from('stars')
-
         .select('*', { count: 'exact', head: true })
-
       
-
-      if (!error && count !== null) {
-
+      if (isMounted && !error && count !== null) {
         setGlobalStars(count)
-
       }
-
     }
 
     fetchGlobalCount()
-
+    return () => { isMounted = false }
   }, [])
 
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion'
+import { supabase } from '../lib/supabase'
 import { FaCircle, FaSquare, FaPlay, FaStar, FaHeart, FaGem } from 'react-icons/fa'
 import Loader from '../components/Loader'
 import Logo from '../components/Logo'

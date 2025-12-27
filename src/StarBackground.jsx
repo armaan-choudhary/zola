@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+/* eslint-disable react-hooks/purity */
+import { useEffect, useState, useMemo } from 'react'
 import { useTier } from './context/TierContext'
 
 /**
@@ -60,68 +61,45 @@ function ShootingStars({ tier }) {
  * Renders the drifting, twinkling stars that form the deep background layer.
  */
 export default function StarBackground() {
-  const [stars, setStars] = useState([])
-  const { tier } = useTier()
+  const { tier, isModalOpen } = useTier()
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 600
+  
+  // Use a static seed for deterministic background stars
+  const stars = useMemo(() => {
+    let targetCount = isMobile ? 120 : 250
+    if (tier === 2) targetCount = isMobile ? 150 : 350
+    if (tier === 3) targetCount = isMobile ? 200 : 450
+    if (tier === 4) targetCount = isMobile ? 250 : 600
 
-  useEffect(() => {
-    const isMobile = window.innerWidth < 600
-    
-    // Base counts
-    let baseCount = isMobile ? 100 : 200
-    
-    // Scale by tier
-    if (tier === 2) baseCount = isMobile ? 120 : 240
-    if (tier === 3) baseCount = isMobile ? 150 : 300
-    if (tier === 4) baseCount = isMobile ? 200 : 400
-
-    const newStars = Array.from({ length: baseCount }).map((_, i) => ({
+    return Array.from({ length: targetCount }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 1.5 + 0.5,
-      duration: Math.random() * 40 + 40, 
-      delay: Math.random() * 5,
-      opacity: Math.random() * 0.3 + 0.1
+      size: Math.random() * 1.2 + 0.5,
+      opacity: Math.random() * 0.3 + 0.1,
+      twinkleSpeed: Math.random() * 3 + 2
     }))
-    setStars(newStars)
-  }, [tier])
+  }, [tier, isMobile])
 
   return (
-    <div className="star-bg-layer">
-      <style>
-        {`
-          @keyframes shooting-star {
-            0% { transform: translateX(0) translateY(0) rotate(-45deg) scale(0); opacity: 1; }
-            70% { opacity: 1; }
-            100% { transform: translateX(-500px) translateY(500px) rotate(-45deg) scale(1); opacity: 0; }
-          }
-          .shooting-star {
-            position: absolute;
-            width: 100px;
-            height: 2px;
-            background: linear-gradient(90deg, white, transparent);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 1;
-          }
-        `}
-      </style>
+    <div className={`star-bg-layer ${isModalOpen ? 'paused' : ''}`}>
       <ShootingStars tier={tier} />
-      {stars.map((star) => (
-        <div
-          key={star.id}
-          className="bg-star-decoration"
-          style={{
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: `${star.size}px`,
-            height: `${star.size}px`,
-            opacity: star.opacity,
-            animationDuration: `${star.duration}s`,
-            animationDelay: `-${star.delay}s`,
-          }}
-        />
-      ))}
+      <div className="bg-star-container">
+        {stars.map((star) => (
+          <div
+            key={star.id}
+            className="bg-star-decoration"
+            style={{
+              left: `${star.x}%`,
+              top: `${star.y}%`,
+              width: `${star.size}px`,
+              height: `${star.size}px`,
+              opacity: star.opacity,
+              '--speed': `${star.twinkleSpeed}s`
+            }}
+          />
+        ))}
+      </div>
     </div>
   )
 }

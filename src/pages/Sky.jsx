@@ -1,9 +1,9 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+// eslint-disable-next-line no-unused-vars
+import { AnimatePresence, motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import Star from '../Star'
-import JSConfetti from 'js-confetti'
 import { toPng, toBlob } from 'html-to-image'
 import StoryCard from '../components/StoryCard'
 import Loader from '../components/Loader'
@@ -23,105 +23,275 @@ const getStarColor = (style) => {
   }
 }
 
-export default function Sky() {
-    const { slug } = useParams()
-    const { setTier } = useTier()
-    const [searchParams, setSearchParams] = useSearchParams()
-    const [allStars, setAllStars] = useState([])
-    const currentPage = parseInt(searchParams.get('page') || '1')
-    const setCurrentPage = (page) => setSearchParams({ page: page.toString() })
+const STARS_PER_PAGE = 10
 
+const backgroundStarsData = [
+    { x: 10, y: 15, size: 2 }, { x: 85, y: 10, size: 3 }, { x: 30, y: 40, size: 2 },
+    { x: 70, y: 60, size: 3 }, { x: 20, y: 80, size: 2 }, { x: 90, y: 90, size: 3 },
+    { x: 50, y: 20, size: 2 }, { x: 15, y: 55, size: 3 }, { x: 80, y: 35, size: 2 },
+    { x: 45, y: 75, size: 3 }, { x: 5, y: 95, size: 2 }, { x: 95, y: 5, size: 3 }
+];
+
+export default function Sky() {
+    // 1. Hooks & State
+    const { slug } = useParams()
+    const { setTier, setIsModalOpen } = useTier()
+    const [searchParams, setSearchParams] = useSearchParams()
+    
+    const [allStars, setAllStars] = useState([])
     const [lines, setLines] = useState([])
     const [selectedStar, setSelectedStar] = useState(null)
     const [creatorName, setCreatorName] = useState('')
     const [loading, setLoading] = useState(true)
     const [toast, setToast] = useState(null)
     const [timeLeft, setTimeLeft] = useState('')
+    const [sharing, setSharing] = useState(false)
+    const [showProgress, setShowProgress] = useState(false)
+    const [showTutorial, setShowTutorial] = useState(() => {
+        return localStorage.getItem('sky_tutorial_seen') !== 'true'
+    })
 
+    useEffect(() => {
+        setIsModalOpen(!!selectedStar)
+    }, [selectedStar, setIsModalOpen])
+
+    const currentPage = parseInt(searchParams.get('page') || '1')
+    const setCurrentPage = useCallback((page) => setSearchParams({ page: page.toString() }), [setSearchParams])
+
+    // 2. Refs
     const skyRef = useRef(null)
     const skyCardRef = useRef(null)
     const starCardRef = useRef(null)
     const linkCardRef = useRef(null)
     const chimeRef = useRef(null)
-    const jsConfettiRef = useRef(null)
-    const lastTriggeredStarId = useRef(null)
 
-    const NEW_YEAR = new Date('2026-01-01T00:00:00')
-    const isRevealed = new Date() >= NEW_YEAR
+    // 3. Constants & Derived State
+    const NEW_YEAR = useMemo(() => new Date('2025-01-01T00:00:00'), [])
+    const isRevealed = useMemo(() => new Date() >= NEW_YEAR, [NEW_YEAR])
 
-    const [showProgress, setShowProgress] = useState(false)
-
-    const getSkyTier = () => {
+    const skyTier = useMemo(() => {
         const count = allStars.length
         if (count < 5) return { id: 1, name: "First Spark", intensity: 1, color: '#94a3b8', next: 5 }
         if (count < 15) return { id: 2, name: "Astral Awakening", intensity: 1.5, color: '#60a5fa', next: 15 }
         if (count < 30) return { id: 3, name: "Supernova Bloom", intensity: 2, color: '#fbbf24', next: 30 }
         return { id: 4, name: "Infinite Galaxy", intensity: 3, color: '#22d3ee', next: null }
-    }
-    const skyTier = getSkyTier()
+    }, [allStars.length])
 
-    useEffect(() => {
-        setTier(skyTier.id)
-    }, [skyTier.id, setTier])
-
-    const backgroundStars = [
-        { x: 10, y: 15, size: 2 }, { x: 85, y: 10, size: 3 }, { x: 30, y: 40, size: 2 },
-        { x: 70, y: 60, size: 3 }, { x: 20, y: 80, size: 2 }, { x: 90, y: 90, size: 3 },
-        { x: 50, y: 20, size: 2 }, { x: 15, y: 55, size: 3 }, { x: 80, y: 35, size: 2 },
-        { x: 45, y: 75, size: 3 }, { x: 5, y: 95, size: 2 }, { x: 95, y: 5, size: 3 }
-    ];
-
-    const getSkyMood = () => {
-        const count = allStars.length
-        if (count === 0) return "A silent void awaits your light"
-        if (count < 5) return "The first lights are gathering"
-        if (count < 15) return "A vibrant cluster is forming"
-        return "A magnificent galaxy of wishes"
-    }
-
-    const getGreeting = () => {
-        const hour = new Date().getHours()
-        if (hour < 12) return "A morning view of"
-        if (hour < 18) return "An afternoon glimpse of"
-        return "An evening sky for"
-    }
-
-    useEffect(() => {
-        if (isRevealed) return
-        const timer = setInterval(() => {
-            const now = new Date().getTime()
-            const distance = NEW_YEAR.getTime() - now
-            if (distance < 0) { clearInterval(timer); return; }
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24))
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000)
-            setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`)
-        }, 1000)
-        return () => clearInterval(timer)
-    }, [isRevealed])
-
-    const showToast = (message) => {
+    // 4. Helper Functions
+    const showToast = useCallback((message) => {
         setToast(message)
         setTimeout(() => setToast(null), 3000)
-    }
+    }, [])
 
-    const playChime = () => {
+    const dismissTutorial = useCallback(() => {
+        setShowTutorial(false)
+        localStorage.setItem('sky_tutorial_seen', 'true')
+    }, [])
+
+    const playChime = useCallback(() => {
         if (chimeRef.current) {
             chimeRef.current.currentTime = 0
             chimeRef.current.volume = 0.2
             chimeRef.current.play().catch(() => {})
         }
-    }
+    }, [])
 
-    const STARS_PER_PAGE = 10
+    const handleStarClick = useCallback((s) => {
+        setSelectedStar(s)
+        playChime()
+    }, [playChime])
+
+    const calculateConstellation = useCallback((starData) => {
+        if (starData.length < 2) { setLines([]); return; }
+        
+        const getHash = (val) => {
+            const str = String(val)
+            let hash = 0
+            for (let i = 0; i < str.length; i++) hash = (hash << 5) - hash + str.charCodeAt(i)
+            return Math.abs(hash)
+        }
+
+        const edges = []
+        for (let i = 0; i < starData.length; i++) {
+            for (let j = i + 1; j < starData.length; j++) {
+                const s1 = starData[i], s2 = starData[j]
+                const realDist = Math.hypot(s1.pos_x - s2.pos_x, s1.pos_y - s2.pos_y)
+                const seed = getHash(`${s1.id}-${s2.id}`)
+                const jitter = 0.85 + ((seed % 30) / 100) 
+                edges.push({ p1: s1, p2: s2, dist: realDist * jitter, realDist: realDist })
+            }
+        }
+        
+        const sortedEdges = edges.sort((a, b) => a.dist - b.dist)
+        const parent = new Map()
+        starData.forEach(s => parent.set(s.id, s.id))
+        const find = (id) => {
+            if (parent.get(id) === id) return id;
+            const root = find(parent.get(id)); parent.set(id, root); return root;
+        }
+        const union = (id1, id2) => {
+            const r1 = find(id1), r2 = find(id2)
+            if (r1 !== r2) { parent.set(r1, r2); return true; }
+            return false;
+        }
+        
+        const degrees = new Map(), valid = []
+        let hubId = null;
+
+        for (let e of sortedEdges) {
+            if (find(e.p1.id) !== find(e.p2.id)) {
+                const d1 = degrees.get(e.p1.id) || 0
+                const d2 = degrees.get(e.p2.id) || 0
+                const nextD1 = d1 + 1
+                const nextD2 = d2 + 1
+                let allow = true
+                if (nextD1 > 3 || nextD2 > 3) allow = false
+                if (allow && nextD1 === 3) { if (hubId !== null && hubId !== e.p1.id) allow = false; }
+                if (allow && nextD2 === 3) { if (hubId !== null && hubId !== e.p2.id) allow = false; }
+
+                if (allow) {
+                    union(e.p1.id, e.p2.id)
+                    degrees.set(e.p1.id, nextD1)
+                    degrees.set(e.p2.id, nextD2)
+                    valid.push(e)
+                    if (nextD1 === 3) hubId = e.p1.id
+                    if (nextD2 === 3) hubId = e.p2.id
+                }
+            }
+        }
+        
+        while (true) {
+            const rootSet = new Set(starData.map(s => find(s.id)))
+            if (rootSet.size <= 1) break
+            let bestEdge = null
+            for (let e of sortedEdges) {
+                if (find(e.p1.id) !== find(e.p2.id)) {
+                    bestEdge = e
+                    break; 
+                }
+            }
+            if (bestEdge) {
+                union(bestEdge.p1.id, bestEdge.p2.id)
+                valid.push(bestEdge)
+            } else break; 
+        }
+        setLines(valid)
+    }, [])
+
+    const handleShareLink = useCallback(async () => {
+        if (sharing) return
+        const url = `${window.location.origin}/send/${slug}`
+        
+        // 1. Always try to copy to clipboard first (silent best effort)
+        let copied = false
+        try {
+            await navigator.clipboard.writeText(url)
+            copied = true
+        } catch (e) {
+            console.error("Copy failed", e)
+        }
+
+        // 2. If mobile/supported, try native share
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2)
+
+        if (isMobile && navigator.share) {
+            setSharing(true)
+            try {
+                // Try Image Share
+                await new Promise(r => setTimeout(r, 100))
+                const blob = await toBlob(linkCardRef.current, { cacheBust: true, pixelRatio: 2 })
+                if (!blob) throw new Error("Blob failed")
+                const file = new File([blob], `zola-invite.png`, { type: 'image/png' })
+                const shareData = { files: [file], title: 'ZOLA', text: `Add a star to my sky! ✨`, url: url }
+                
+                if (navigator.canShare && navigator.canShare(shareData)) {
+                    await navigator.share(shareData)
+                } else {
+                    throw new Error("Cannot share file")
+                }
+                showToast("Link shared! ✨")
+            } catch (err) {
+                if (err.name === 'AbortError') return
+                // Fallback to Text Share
+                try {
+                    await navigator.share({ title: 'ZOLA', text: `Add a star to my sky! ✨`, url: url })
+                    showToast("Link shared! ✨")
+                } catch (e) {
+                    if (copied) showToast("Link copied! 🔗")
+                    else showToast("Could not share link ✨")
+                }
+            } finally {
+                setSharing(false)
+            }
+        } else {
+            // Desktop / No Share Support
+            if (copied) showToast("Link copied! 🔗")
+            else showToast("Could not copy link ✨")
+        }
+    }, [slug, sharing, showToast])
+
+    const handleShareStory = useCallback(async (type, mode = 'share') => {
+        if (sharing) return
+        const ref = type === 'star' ? starCardRef : skyCardRef
+        if (!ref?.current) { showToast("Still preparing... ✨"); return; }
+        
+        setSharing(true)
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+        const url = `${window.location.origin}/send/${slug}`
+
+        try {
+            await new Promise(r => setTimeout(r, 500))
+            if (mode === 'download') {
+                const dataUrl = await toPng(ref.current, { cacheBust: true, pixelRatio: 3 })
+                const link = document.createElement('a')
+                link.download = `zola-${type}.png`; link.href = dataUrl; link.click()
+                showToast("Image saved! 📸")
+            } else if (navigator.share) {
+                const blob = await toBlob(ref.current, { cacheBust: true, pixelRatio: 2 })
+                if (!blob) throw new Error("Blob failed")
+                const file = new File([blob], `zola-${type}.png`, { type: 'image/png' })
+                const shareData = { files: [file], title: `ZOLA ${type}`, text: `Check this out! ✨`, url: url }
+                if (navigator.canShare && navigator.canShare(shareData)) await navigator.share(shareData)
+                else await navigator.share({ title: `ZOLA ${type}`, url: url })
+            } else {
+                showToast(isMobile ? "Use 📥 to save! ✨" : "Mobile only. Use 📥! ✨")
+            }
+        } catch {
+            showToast("Operation failed ✨")
+        } finally { setSharing(false) }
+    }, [slug, sharing, showToast])
+
+    const skyMood = useMemo(() => {
+        const count = allStars.length
+        if (count === 0) return "A silent void awaits your light"
+        if (count < 5) return "The first lights are gathering"
+        if (count < 15) return "A vibrant cluster is forming"
+        return "A magnificent galaxy of wishes"
+    }, [allStars.length])
+
+    const greeting = useMemo(() => {
+        const hour = new Date().getHours()
+        if (hour < 12) return "A morning view of"
+        if (hour < 18) return "An afternoon glimpse of"
+        return "An evening sky for"
+    }, [])
+
+    const displayedStars = useMemo(() => {
+        const startIndex = (currentPage - 1) * STARS_PER_PAGE
+        return allStars.slice(startIndex, startIndex + STARS_PER_PAGE)
+    }, [allStars, currentPage])
+
+    // 5. Effects
+    useEffect(() => {
+        setTier(skyTier.id)
+    }, [skyTier.id, setTier])
 
     useEffect(() => {
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3')
         audio.load(); chimeRef.current = audio
         const unlock = () => {
             if (chimeRef.current) {
-                chimeRef.current.play().then(() => { chimeRef.current.pause(); chimeRef.current.currentTime = 0; }).catch(() => {})
+                chimeRef.current.play().then(() => { chimeRef.current.pause(); chimeRef.current.currentTime = 0; }).catch(() => null)
             }
             window.removeEventListener('click', unlock)
         }
@@ -131,144 +301,16 @@ export default function Sky() {
 
     useEffect(() => {
         const channel = supabase.channel('sky-realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stars' }, (payload) => {
-            if (payload.new && payload.new.sky_slug === slug) window.location.reload()
+            if (payload.new && payload.new.sky_slug === slug) {
+                setAllStars((prev) => {
+                    if (prev.some(s => s.id === payload.new.id)) return prev
+                    return [...prev, payload.new]
+                })
+                showToast("✨ A new star has joined the sky")
+            }
         }).subscribe()
         return () => { supabase.removeChannel(channel); }
-    }, [slug])
-
-    const handleShareLink = async () => {
-        if (sharing) return
-        const url = `${window.location.origin}/send/${slug}`
-        
-        try {
-            await navigator.clipboard.writeText(url)
-        } catch { /* ignore clipboard errors */ }
-
-        if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            setSharing(true)
-            try {
-                // Wait a bit to ensure fonts and layout are ready
-                await new Promise(r => setTimeout(r, 300))
-                
-                const blob = await toBlob(linkCardRef.current, { 
-                    cacheBust: true, 
-                    pixelRatio: 2, // High quality
-                })
-                
-                if (!blob) throw new Error("Blob generation failed")
-                const file = new File([blob], `zola-invite.png`, { type: 'image/png' })
-                
-                await navigator.share({
-                    files: [file],
-                    title: 'ZOLA',
-                    text: `Add a star to my sky! ✨`,
-                    url: url
-                })
-                showToast("Link copied & card shared! ✨")
-            } catch (err) {
-                console.error("Link share failed:", err)
-                await navigator.share({
-                    title: 'ZOLA',
-                    text: `Check out my sky on ZOLA! ✨`,
-                    url: url
-                })
-            } finally {
-                setSharing(false)
-            }
-        } else {
-            showToast("Link copied! 🔗")
-        }
-    }
-
-    const [sharing, setSharing] = useState(false)
-    const [showTutorial, setShowTutorial] = useState(() => {
-        return localStorage.getItem('sky_tutorial_seen') !== 'true'
-    })
-
-    const dismissTutorial = () => {
-        setShowTutorial(false)
-        localStorage.setItem('sky_tutorial_seen', 'true')
-    }
-
-    const handleShareStory = async (type, mode = 'share') => {
-        if (sharing) return
-        const ref = type === 'star' ? starCardRef : skyCardRef
-        if (!ref || !ref.current) {
-            showToast("Still preparing... try again in a second ✨")
-            return
-        }
-        
-        setSharing(true)
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const url = `${window.location.origin}/send/${slug}`
-        const shareTitle = `ZOLA ${type === 'star' ? 'Star' : 'Sky'}`
-        const shareText = `Check out this ${type === 'star' ? 'wish' : 'sky'} on ZOLA! ✨`
-
-        try {
-            // Increased delay for artifact stability
-            await new Promise(r => setTimeout(r, 500))
-
-            if (mode === 'download') {
-                const dataUrl = await toPng(ref.current, { 
-                    cacheBust: true, 
-                    pixelRatio: 3 // Higher quality for artifact feel
-                })
-                const link = document.createElement('a')
-                link.download = `zola-${type}.png`; link.href = dataUrl; link.click()
-                showToast("Image saved! 📸")
-            } else {
-                // Share mode
-                if (navigator.share) {
-                    try {
-                        const blob = await toBlob(ref.current, { 
-                            cacheBust: true, 
-                            pixelRatio: 2
-                        })
-                        
-                        if (!blob) throw new Error("Blob generation failed")
-                        const file = new File([blob], `zola-${type}.png`, { type: 'image/png' })
-                        
-                        const shareData = {
-                            files: [file],
-                            title: shareTitle,
-                            text: shareText,
-                            url: url
-                        }
-
-                        if (navigator.canShare && navigator.canShare(shareData)) {
-                            await navigator.share(shareData)
-                        } else {
-                            // Try sharing link + text as fallback
-                            await navigator.share({ title: shareTitle, text: shareText, url: url })
-                        }
-                    } catch (shareErr) {
-                        console.error("File share failed:", shareErr)
-                        // If file sharing fails, try sharing just the link
-                        await navigator.share({ title: shareTitle, text: shareText, url: url })
-                    }
-                } else {
-                    if (isMobile) {
-                        showToast("Browser limited. Use 📥 to save & share! ✨")
-                    } else {
-                        showToast("Sharing is only available on mobile. Use 📥 to save! ✨")
-                    }
-                }
-            }
-        } catch (err) {
-            if (err.name !== 'AbortError') {
-                console.error("Operation failed:", err)
-                if (isMobile) {
-                    showToast("Sharing failed. Try opening in Safari or Chrome! ✨")
-                } else {
-                    showToast("Could not complete operation ✨")
-                }
-            }
-        } finally {
-            setSharing(false)
-        }
-    }
-
-    useEffect(() => { jsConfettiRef.current = new JSConfetti() }, [])
+    }, [slug, showToast])
 
     useEffect(() => {
         const fetchSky = async () => {
@@ -287,138 +329,26 @@ export default function Sky() {
         const startIndex = (currentPage - 1) * STARS_PER_PAGE
         const pageStars = allStars.slice(startIndex, startIndex + STARS_PER_PAGE)
         calculateConstellation(pageStars)
-    }, [allStars, currentPage])
+    }, [allStars, currentPage, calculateConstellation])
 
     useEffect(() => {
-        if (selectedStar && isRevealed) {
-            if (lastTriggeredStarId.current === selectedStar.id) return;
-            lastTriggeredStarId.current = selectedStar.id;
-            const emoji = selectedStar.emoji || '✨';
-            setTimeout(() => { if (jsConfettiRef.current) jsConfettiRef.current.addConfetti({ emojis: [emoji], emojiSize: 50, confettiNumber: 20 }) }, 400);
-        } else if (!selectedStar) { lastTriggeredStarId.current = null; }
-    }, [selectedStar, isRevealed]);
-
-    const calculateConstellation = (starData) => {
-        if (starData.length < 2) { setLines([]); return; }
-        
-        // Helper for deterministic randomness based on IDs
-        const getHash = (val) => {
-            const str = String(val);
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) hash = (hash << 5) - hash + str.charCodeAt(i);
-            return Math.abs(hash);
-        }
-
-        const edges = []
-        for (let i = 0; i < starData.length; i++) {
-            for (let j = i + 1; j < starData.length; j++) {
-                const s1 = starData[i], s2 = starData[j]
-                const realDist = Math.hypot(s1.pos_x - s2.pos_x, s1.pos_y - s2.pos_y)
-                
-                // Add uniqueness jitter (+/- 15%)
-                const seed = getHash(`${s1.id}-${s2.id}`)
-                const jitter = 0.85 + ((seed % 30) / 100) 
-                
-                edges.push({ p1: s1, p2: s2, dist: realDist * jitter, realDist: realDist })
-            }
-        }
-        
-        // Sort by distance (jittered)
-        const sortedEdges = edges.sort((a, b) => a.dist - b.dist)
-
-        const parent = new Map()
-        starData.forEach(s => parent.set(s.id, s.id))
-        const find = (id) => {
-            if (parent.get(id) === id) return id;
-            const root = find(parent.get(id)); parent.set(id, root); return root;
-        }
-        const union = (id1, id2) => {
-            const r1 = find(id1), r2 = find(id2);
-            if (r1 !== r2) { parent.set(r1, r2); return true; }
-            return false;
-        }
-        
-        const degrees = new Map(), valid = []
-        let hubId = null;
-
-        // Pass 1: Strict "Single Hub" Logic
-        for (let e of sortedEdges) {
-            if (find(e.p1.id) !== find(e.p2.id)) {
-                const d1 = degrees.get(e.p1.id) || 0
-                const d2 = degrees.get(e.p2.id) || 0
-                const nextD1 = d1 + 1
-                const nextD2 = d2 + 1
-
-                // Constraint Check
-                let allow = true
-                
-                // Absolute max is 3
-                if (nextD1 > 3 || nextD2 > 3) allow = false
-                
-                // Single Hub Rule:
-                // If a node is about to reach degree 3, it must be the hub (or the slot must be open)
-                if (allow && nextD1 === 3) {
-                    if (hubId !== null && hubId !== e.p1.id) allow = false;
-                }
-                if (allow && nextD2 === 3) {
-                    if (hubId !== null && hubId !== e.p2.id) allow = false;
-                }
-
-                if (allow) {
-                    union(e.p1.id, e.p2.id);
-                    degrees.set(e.p1.id, nextD1);
-                    degrees.set(e.p2.id, nextD2);
-                    valid.push(e);
-
-                    // Assign Hub ID if we just created a degree-3 node
-                    if (nextD1 === 3) hubId = e.p1.id;
-                    if (nextD2 === 3) hubId = e.p2.id;
-                }
-            }
-        }
-        
-        // Pass 2: Iterative Repair to Guarantee 100% Connectivity
-        // Keep merging components until only 1 connected component remains
-        while (true) {
-            const rootSet = new Set(starData.map(s => find(s.id)))
-            if (rootSet.size <= 1) break; // Fully connected!
-
-            let bestEdge = null;
-            let minDistance = Infinity;
-
-            // Find the single shortest edge that connects two DIFFERENT components
-            // This is inefficient (O(E)) but safe and necessary for guaranteed connectivity
-            for (let e of sortedEdges) {
-                if (find(e.p1.id) !== find(e.p2.id)) {
-                    if (e.dist < minDistance) {
-                        minDistance = e.dist;
-                        bestEdge = e;
-                        // Optimization: Since edges are sorted, the first valid bridge IS the best one.
-                        break; 
-                    }
-                }
-            }
-
-            if (bestEdge) {
-                union(bestEdge.p1.id, bestEdge.p2.id);
-                // Update degrees for tracking, though we ignore limits here
-                degrees.set(bestEdge.p1.id, (degrees.get(bestEdge.p1.id)||0)+1);
-                degrees.set(bestEdge.p2.id, (degrees.get(bestEdge.p2.id)||0)+1);
-                valid.push(bestEdge);
-            } else {
-                // Should never happen if the graph is connected, but avoids infinite loops
-                break; 
-            }
-        }
-
-        setLines(valid)
-    }
+        if (isRevealed) return
+        const timer = setInterval(() => {
+            const now = new Date().getTime()
+            const distance = NEW_YEAR.getTime() - now
+            if (distance < 0) { clearInterval(timer); return; }
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24))
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000)
+            setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`)
+        }, 1000)
+        return () => clearInterval(timer)
+    }, [isRevealed, NEW_YEAR])
 
     if (loading) return <Loader />
 
     const totalPages = Math.ceil(allStars.length / STARS_PER_PAGE)
-    const startIndex = (currentPage - 1) * STARS_PER_PAGE
-    const displayedStars = allStars.slice(startIndex, startIndex + STARS_PER_PAGE)
     const isMobile = window.innerWidth < 600
 
     return (
@@ -436,7 +366,7 @@ export default function Sky() {
                        radial-gradient(circle at 50% 85%, rgba(236, 72, 153, 0.18) 0%, transparent 50%),
                        radial-gradient(circle at 80% 80%, rgba(251, 191, 36, 0.12) 0%, transparent 40%),
                        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 40%)`
-                    : `radial-gradient(circle, transparent 60%, ${skyTier.id >= 3 ? skyTier.color : 'transparent'} 150%)`, 
+                    : `radial-gradient(circle, transparent 60%, ${skyTier.id >= 3 ? skyTier.color : 'transparent'} 150%)`,
                 pointerEvents: 'none', 
                 zIndex: 1, 
             }} />
@@ -450,7 +380,15 @@ export default function Sky() {
                 />
             )}
             <AnimatePresence>{toast && (
-                <motion.div initial={{ opacity: 0, y: 50, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 50, x: '-50%' }} className="toast">{toast}</motion.div>
+                <motion.div 
+                    initial={{ opacity: 0, y: 30, x: '-50%' }} 
+                    animate={{ opacity: 1, y: 0, x: '-50%' }} 
+                    exit={{ opacity: 0, y: 20, x: '-50%' }} 
+                    transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                    className="toast"
+                >
+                    {toast}
+                </motion.div>
             )}</AnimatePresence>
 
             <nav className="navbar" style={{ paddingRight: '15px', paddingLeft: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 'var(--nav-height)', pointerEvents: 'none' }}>
@@ -459,11 +397,11 @@ export default function Sky() {
                 </Link>
                 <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', flex: 1, minWidth: 0, padding: '0 5px' }}>
                     <div className="sky-title" style={{ padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: '0.6rem', opacity: 0.6, display: 'block', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1 }}>{getGreeting()}</span>
+                        <span style={{ fontSize: '0.6rem', opacity: 0.6, display: 'block', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1 }}>{greeting}</span>
                         <span style={{ lineHeight: 1.2, fontSize: window.innerWidth < 600 ? '0.85rem' : '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%', fontWeight: 600 }}>{creatorName}'s Sky</span>
                     </div>
                     <div style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)', opacity: 0.5, marginTop: '2px', lineHeight: 1 }}>
-                        {isRevealed ? getSkyMood() : `Revealing in ${timeLeft}`}
+                        {isRevealed ? skyMood : `Revealing in ${timeLeft}`}
                     </div>
                 </div>
                 <div 
@@ -519,7 +457,7 @@ export default function Sky() {
                                 background: skyTier.id >= 2 ? `linear-gradient(90deg, #fff, ${skyTier.color})` : '#94a3b8',
                                 boxShadow: skyTier.id >= 2 ? `0 0 8px ${skyTier.color}80` : 'none'
                             }} 
-                            transition={{ duration: 1, ease: "easeInOut" }}
+                            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                             style={{ height: '100%' }} 
                         />
                     </div>
@@ -560,35 +498,33 @@ export default function Sky() {
                             </defs>
                             {lines.map((line, i) => (
                                 <motion.line 
-                                    key={`${line.p1.id}-${line.p2.id}`} 
-                                    x1={`${line.p1.pos_x}%`} 
-                                    y1={`${line.p1.pos_y}%`} 
-                                    x2={`${line.p2.pos_x}%`} 
-                                    y2={`${line.p2.pos_y}%`} 
+                                    key={`${line.p1.id}-${line.p2.id}`}
+                                    x1={`${line.p1.pos_x}%`}
+                                    y1={`${line.p1.pos_y}%`}
+                                    x2={`${line.p2.pos_x}%`}
+                                    y2={`${line.p2.pos_y}%`}
+                                    initial={{ pathLength: 0, opacity: 0 }}
+                                    animate={{
+                                        pathLength: 1,
+                                        opacity: skyTier.id === 4 ? [0.8, 1, 0.8] : 0.6,
+                                        strokeWidth: skyTier.id === 4 
+                                            ? (isMobile ? [1.5, 2.5, 1.5] : [2.5, 3.5, 2.5])
+                                            : skyTier.id === 3
+                                                ? (isMobile ? [1, 1.8, 1] : [1.5, 2.5, 1.5])
+                                                : (isMobile ? [0.8, 0.8, 0.8] : [1.2, 1.2, 1.2])
+                                    }}
+                                    transition={{
+                                        pathLength: { duration: 0.8, ease: [0.23, 1, 0.32, 1], delay: 0.3 },
+                                        opacity: { duration: 0.4, delay: 0.3 },
+                                        strokeWidth: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: i * 0.1 }
+                                    }} 
                                     stroke={
                                         skyTier.id === 4 ? "url(#phase4-gradient)" : 
                                         skyTier.id === 3 ? "url(#phase3-gradient)" :
                                         skyTier.id === 2 ? "url(#phase2-gradient)" :
                                         "rgba(255, 255, 255, 0.3)"
                                     }
-                                    strokeWidth={isMobile ? "1.5" : "2.5"} 
                                     vectorEffect="non-scaling-stroke"
-                                    animate={skyTier.id === 4 ? { 
-                                        opacity: [0.8, 1, 0.8], 
-                                        strokeWidth: isMobile ? [1.5, 2.5, 1.5] : [2.5, 3.5, 2.5] 
-                                    } : skyTier.id === 3 ? {
-                                        opacity: [0.4, 0.7, 0.4],
-                                        strokeWidth: isMobile ? [1, 1.8, 1] : [1.5, 2.5, 1.5]
-                                    } : { 
-                                        opacity: [0.3, 0.6, 0.3],
-                                        strokeWidth: isMobile ? [0.8, 0.8, 0.8] : [1.2, 1.2, 1.2]
-                                    }} 
-                                    transition={{ 
-                                        duration: 4, 
-                                        repeat: Infinity, 
-                                        delay: i * 0.2,
-                                        ease: "easeInOut" 
-                                    }} 
                                     style={{
                                         filter: skyTier.id >= 3 ? `drop-shadow(0 0 2px ${skyTier.color}60)` : 'none'
                                     }}
@@ -596,7 +532,7 @@ export default function Sky() {
                             ))}
                         </svg>
                         {displayedStars.map((star) => (
-                            <Star key={star.id} star={star} setSelectedStar={(s) => { setSelectedStar(s); playChime(); }} />
+                            <Star key={star.id} star={star} setSelectedStar={handleStarClick} />
                         ))}
                     </>
                 )}
@@ -685,80 +621,80 @@ export default function Sky() {
 
             {selectedStar && (
                 <div className="modal-overlay" onClick={() => setSelectedStar(null)}>
-                    <motion.div 
+                    <div 
                         className="glass-card" 
-                        initial={{ opacity: 0, scale: 0.9 }} 
-                        animate={{ opacity: 1, scale: 1 }} 
                         onClick={(e) => e.stopPropagation()} 
                         style={{ 
-                            width: '100%',
-                            maxWidth: '400px',
+                            width: 'calc(100% - 40px)',
+                            maxWidth: '340px',
                             padding: 0,
                             position: 'relative',
                             overflow: 'hidden',
-                            border: `3px solid ${getStarColor(selectedStar.style)}60`,
-                            background: 'rgba(20, 20, 30, 0.98)',
+                            borderRadius: '24px',
+                            border: `4px solid ${getStarColor(selectedStar.style)}`,
+                            background: 'rgba(15, 23, 42, 0.9)',
+                            backdropFilter: 'blur(20px)',
                             boxShadow: `0 30px 60px rgba(0,0,0,0.5)`,
                             textAlign: 'left'
                         }}
                     >
                         {/* Background Stars Decoration */}
-                        {backgroundStars.map((s, i) => (
+                        {backgroundStarsData.map((s, i) => (
                             <div key={i} style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%`, width: `${s.size}px`, height: `${s.size}px`, background: 'white', borderRadius: '50%', opacity: 0.2 }} />
                         ))}
                         
                         {/* Tier-based vignette overlay */}
                         <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle, transparent 40%, ${skyTier.id >= 3 ? '#fbbf24' : 'transparent'} 150%)`, opacity: skyTier.id >= 3 ? 0.1 : 0, pointerEvents: 'none' }} />
 
-                        <button onClick={() => setSelectedStar(null)} style={{ position: 'absolute', top: '15px', left: '15px', background: 'transparent', width: 'auto', padding: '5px', margin: 0, border: 'none', color: 'var(--text-secondary)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '24px' }}><FaTimes size={18} /></button>
+                        <button onClick={() => setSelectedStar(null)} style={{ position: 'absolute', top: '12px', left: '12px', background: 'transparent', width: 'auto', padding: '5px', margin: 0, border: 'none', color: 'var(--text-secondary)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '24px' }}><FaTimes size={16} /></button>
                         
-                        <div style={{ textAlign: 'center', opacity: 1, paddingTop: '30px', marginBottom: '-10px', position: 'relative', zIndex: 1 }}>
-                            <Logo size={32} />
+                        <div style={{ textAlign: 'center', opacity: 1, paddingTop: '25px', marginBottom: '-15px', position: 'relative', zIndex: 1 }}>
+                            <Logo size={28} />
                         </div>
 
                         {isRevealed ? (
                             <div style={{ position: 'relative', zIndex: 1 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '25px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '20px' }}>
                                     <div style={{ 
-                                        width: '80px', height: '80px', 
-                                        borderRadius: '20px', 
+                                        width: '60px', height: '60px', 
+                                        borderRadius: '15px', 
                                         background: `${getStarColor(selectedStar.style)}20`,
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontSize: '2.5rem',
+                                        fontSize: '2rem',
                                         border: `1px solid ${getStarColor(selectedStar.style)}40`
                                     }}>{selectedStar.emoji}</div>
                                     <div>
-                                        <p style={{ margin: 0, fontSize: '1.4rem', color: '#f1f5f9', fontWeight: 500 }}>
+                                        <p style={{ margin: 0, fontSize: '1.1rem', color: '#f1f5f9', fontWeight: 500 }}>
                                             ~ {selectedStar.sender_name || 'Anonymous'}
                                         </p>
-                                        <p style={{ margin: '5px 0 0 0', fontSize: '0.7rem', color: getStarColor(selectedStar.style), textTransform: 'uppercase', letterSpacing: '3px' }}>Sent a wish</p>
+                                        <p style={{ margin: '2px 0 0 0', fontSize: '0.6rem', color: getStarColor(selectedStar.style), textTransform: 'uppercase', letterSpacing: '2px' }}>Sent a wish</p>
                                     </div>
                                 </div>
 
-                                <div className="msg-text" style={{ padding: '0 25px 30px 25px', lineHeight: '1.6', fontSize: '1.1rem', color: '#e2e8f0', minHeight: '60px' }}>
-                                    {selectedStar.message.split("").map((char, i) => (
-                                        <motion.span key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.05, delay: i * 0.02 }}>{char}</motion.span>
-                                    ))}
+                                <div className="msg-text" style={{ padding: '0 20px 25px 20px', lineHeight: '1.5', fontSize: '1rem', color: '#e2e8f0', minHeight: '50px' }}>
+                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+                                        {selectedStar.message}
+                                    </motion.div>
                                 </div>
 
-                                <div style={{ display: 'flex', gap: '10px', padding: '0 20px 20px 20px' }}>
-                                    <button className="story-btn" onClick={() => handleShareStory('star', 'share')} disabled={sharing} style={{ flex: 1, margin: 0, height: '45px', background: getStarColor(selectedStar.style), color: ['classic', 'gold', 'green'].includes(selectedStar.style) ? '#020617' : '#ffffff', boxShadow: `0 10px 20px ${getStarColor(selectedStar.style)}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.85rem' }}>
-                                        {sharing ? '...' : <><FaShareAlt /> Share</>}
+                                <div style={{ display: 'flex', gap: '8px', padding: '0 15px 15px 15px' }}>
+                                    <button className="story-btn" onClick={() => handleShareStory('star', 'share')} disabled={sharing} style={{ flex: 1, margin: 0, height: '40px', background: getStarColor(selectedStar.style), color: ['classic', 'gold', 'green'].includes(selectedStar.style) ? '#020617' : '#ffffff', boxShadow: `0 8px 15px ${getStarColor(selectedStar.style)}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.8rem' }}>
+                                        {sharing ? '...' : <><FaShareAlt size={12} /> Share</>}
                                     </button>
-                                    <button className="story-btn" onClick={() => handleShareStory('star', 'download')} disabled={sharing} style={{ width: '45px', margin: 0, height: '45px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        {sharing ? '...' : <FaDownload />}
+                                    <button className="story-btn" onClick={() => handleShareStory('star', 'download')} disabled={sharing} style={{ width: '40px', margin: 0, height: '40px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {sharing ? '...' : <FaDownload size={12} />}
                                     </button>
                                 </div>
 
                                 <div style={{ 
-                                    background: '#ffffff', 
-                                    height: '40px', 
+                                    background: getStarColor(selectedStar.style), 
+                                    height: '36px', 
                                     display: 'flex', 
                                     alignItems: 'center', 
                                     justifyContent: 'center', 
-                                    color: '#020617', 
+                                    color: ['classic', 'gold', 'green'].includes(selectedStar.style) ? '#020617' : '#ffffff', 
                                     fontWeight: 700, 
-                                    fontSize: '0.75rem', 
+                                    fontSize: '0.65rem', 
                                     letterSpacing: '2px', 
                                     textTransform: 'uppercase' 
                                 }}>
@@ -767,16 +703,23 @@ export default function Sky() {
                             </div>
                         ) : (
                             <div style={{ textAlign: 'center', padding: '40px 20px', position: 'relative', zIndex: 1 }}>
-                                <span className="emoji-big" style={{ fontSize: '4rem' }}>🔒</span>
-                                <p style={{ marginTop: '15px', opacity: 0.8 }}>This star is locked until New Year 2026!</p>
+                                <span className="emoji-big" style={{ fontSize: '3rem', display: 'block', marginBottom: '15px' }}>🔒</span>
+                                <p style={{ fontSize: '1rem', color: '#f1f5f9', fontWeight: 500 }}>This star is locked</p>
+                                <p style={{ marginTop: '8px', opacity: 0.6, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '2px' }}>Unlocks on New Year 2026</p>
+                                <button 
+                                    onClick={() => setSelectedStar(null)}
+                                    style={{ marginTop: '20px', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid var(--glass-border)', width: 'auto', padding: '8px 24px', fontSize: '0.8rem' }}
+                                >
+                                    Close
+                                </button>
                             </div>
                         )}
-                    </motion.div>
+                    </div>
                 </div>
             )}
 
             {selectedStar && <StoryCard ref={starCardRef} type="star" data={selectedStar} creatorName={creatorName} skyTier={skyTier} totalStars={allStars.length} />}
-            {allStars.length > 0 && <StoryCard ref={skyCardRef} type="constellation" data={displayedStars} creatorName={creatorName} lines={lines} skyTier={skyTier} totalStars={allStars.length} />}
+            <StoryCard ref={skyCardRef} type="constellation" data={displayedStars} creatorName={creatorName} lines={lines} skyTier={skyTier} totalStars={allStars.length} />
             <StoryCard ref={linkCardRef} type="link-only" creatorName={creatorName} totalStars={allStars.length} />
         </div>
     )

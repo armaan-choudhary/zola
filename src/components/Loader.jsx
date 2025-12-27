@@ -1,26 +1,27 @@
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import Logo from './Logo'
 
-export default function Loader() {
-  const messages = [
-    "Aligning the ZOLA stars...",
-    "polishing the ZOLA constellations...",
-    "Gathering celestial ZOLA light...",
-    "Mapping the ZOLA galaxy...",
-    "Consulting the ZOLA nebula...",
-    "Counting drifting ZOLA stars...",
-    "Whispering to the ZOLA cosmos...",
-    "Drafting your celestial map...",
-    "Igniting the supernovas...",
-    "Syncing with the orbit..."
-  ]
-  
-  const [message, setMessage] = useState(messages[0])
+const MESSAGES = [
+  "Aligning the ZOLA stars...",
+  "polishing the ZOLA constellations...",
+  "Gathering celestial ZOLA light...",
+  "Mapping the ZOLA galaxy...",
+  "Consulting the ZOLA nebula...",
+  "Counting drifting ZOLA stars...",
+  "Whispering to the ZOLA cosmos...",
+  "Drafting your celestial map...",
+  "Igniting the supernovas...",
+  "Syncing with the orbit..."
+]
+
+export function Loader() {
+  const [message, setMessage] = useState(MESSAGES[0])
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMessage(messages[Math.floor(Math.random() * messages.length)])
+      setMessage(MESSAGES[Math.floor(Math.random() * MESSAGES.length)])
     }, 2000)
     return () => clearInterval(interval)
   }, [])
@@ -53,3 +54,5 @@ export default function Loader() {
     </div>
   )
 }
+
+export default Loader
