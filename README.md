@@ -1,45 +1,103 @@
-# ZOLA ✨
+# ZOLA 🌌
 
-A beautiful, interactive New Year constellation of messages. ZOLA allows you to create your own digital sky, share it with friends, and watch as their messages form a unique celestial constellation.
+> **A collaborative digital cosmos for the New Year.**
 
-![ZOLA Hero](https://zola-sky.vercel.app/og-image.png)
+ZOLA is a real-time, interactive web experience where users create their own "Sky" and invite friends to add "Stars"—each containing a personal message. As more stars are added, the sky visually evolves, forming constellations and shifting through distinct visual phases.
 
-## 🌌 Features
+![ZOLA Banner](public/og-image.png)
 
-- **Celestial Constellations:** Every message becomes a star. ZOLA uses a robust, single-hub tree expansion algorithm (starting from the oldest star) to form a unique, loop-free constellation.
-- **Adaptive Tier Evolution:** The sky evolves through 4 distinct phases. Phase 04 (Infinite Galaxy) features a vibrant multi-colored pulsating atmosphere, energy-pulsing gradient lines, and rotating celestial arcs around stars.
-- **Session Persistence:** Integrated `localStorage` allows users visiting from Instagram/TikTok in-app browsers to easily return to their created sky via a "Welcome Back" recovery button.
-- **Brand Identity:** Bold, interactive branding with high-contrast, standardized footers across all shared artifacts.
-- **Digital Time Capsule:** Messages are locked behind a "Locked" state until New Year's Day (Jan 1, 2026).
-- **Highly Customizable:** Senders choose star shape, color, and emoji.
-- **Social-Ready Sharing:** Optimized 500x750 high-quality artifact cards for Instagram Stories with 6px sharp borders and standardized branding.
-- **Polished UI:** Mobile-first design using `100dvh`, responsive star sizing, and optimized static gradients for smooth performance on all devices.
+## 🌟 The Vision (The Why)
 
-## 🛠️ Tech Stack
+We wanted to create a digital space that feels more intimate and magical than a standard messaging app. ZOLA is designed to be:
+*   **Collaborative:** A shared artifact built by a community of friends.
+*   **Evolving:** The visual experience rewards participation; a lonely sky transforms into a vibrant galaxy.
+*   **Ephemeral yet Lasting:** Messages are locked until New Year's 2026 (configurable), turning the sky into a time capsule of wishes.
 
--   **Frontend:** React (Vite)
--   **Database & Realtime:** [Supabase](https://supabase.com/)
--   **Analytics:** Vercel Analytics & Speed Insights
--   **Animations:** [Framer Motion](https://www.framer.com/motion/) & [JS Confetti](https://github.com/loonywizard/js-confetti)
--   **Visuals:** [React Snowfall](https://github.com/cahilfoley/react-snowfall) & [React Icons](https://react-icons.github.io/react-icons/)
--   **Sharing:** [html-to-image](https://github.com/bubkoo/html-to-image) & [Web Share API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Share_API)
+## 🚀 Key Features (The What)
 
-## 🚀 Getting Started
+### 1. Dynamic Sky System
+*   **Visual Tiers:** The sky changes appearance based on the number of stars received:
+    *   **Phase 01: First Spark:** Minimalist, quiet void.
+    *   **Phase 02: Astral Awakening:** Blue hues, connecting lines appear.
+    *   **Phase 03: Supernova Bloom:** Golden warmth, shooting stars.
+    *   **Phase 04: Infinite Galaxy:** Complex nebula gradients, high density.
+*   **Constellation Engine:** An MST-based (Minimum Spanning Tree) algorithm dynamically draws "organic" lines between stars, ensuring a visually pleasing graph without clutter.
 
-### Prerequisites
-- Node.js (v18+)
-- A Supabase project
+### 2. Interactive Stars
+*   **Customization:** Senders can choose their star's shape, color style (Gold, Blue, Fire, etc.), and an emoji icon.
+*   **Message Locking:** Messages are securely stored and (optionally) visually locked until a reveal date.
 
-### Installation
-1. `npm install`
-2. Create `.env` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-3. `npm run dev`
+### 3. Social Sharing & Artifacts
+*   **Story Cards:** Uses `html-to-image` to generate high-quality, downloadable images of the constellation or individual stars, perfectly formatted for Instagram Stories or social media.
+*   **Native Sharing:** Integrates with the Web Share API for seamless mobile sharing.
 
-### Deployment
-The project is optimized for **Vercel**. Simply connect your GitHub repository and add your environment variables. The included `vercel.json` handles routing and analytics automatically.
+### 4. Atmospheric Immersion
+*   **Time-Based Theme:** The background gradients shift subtly based on the user's local time (Dawn, Day, Dusk, Night).
+*   **Animations:** Powered by `framer-motion` for smooth layout transitions and CSS GPU layers for performant background particle effects (drifting stars, nebulas).
 
-## 🗄️ Database Setup
-Create `skies` and `stars` tables in Supabase (see `context.md` for schema details).
+## 🛠️ The Stack (The How)
 
-## 📄 License
-MIT License
+*   **Frontend:** [React 19](https://react.dev/) + [Vite](https://vitejs.dev/) for blazing fast performance.
+*   **Styling:** Pure CSS Modules + [Framer Motion](https://www.framer.com/motion/) for complex animations.
+*   **Backend / Real-time:** [Supabase](https://supabase.com/) (PostgreSQL) for storing skies/stars and broadcasting real-time updates when new stars arrive.
+*   **Utilities:**
+    *   `html-to-image`: For generating shareable PNGs.
+    *   `react-router-dom`: Client-side routing.
+    *   `react-snowfall`: Subtle atmospheric particles.
+
+## 📂 Project Structure
+
+```bash
+src/
+├── components/       # Reusable UI elements
+│   ├── Nebula.jsx    # Phase 4 background effect
+│   ├── StoryCard.jsx # The downloadable image templates
+│   └── TimeTheme.jsx # Handles time-of-day CSS variables
+├── context/
+│   └── TierContext.jsx # Manages global visual state (tiers, modals)
+├── lib/
+│   └── supabase.js   # Database client
+├── pages/
+│   ├── Home.jsx      # Landing & Sky Creation
+│   ├── Sky.jsx       # The main interactive canvas (Constellations)
+│   ├── Send.jsx      # Form to add a star to a sky
+│   └── Demo.jsx      # Simulation mode for testing evolution
+└── StarBackground.jsx # The parallax background layer
+```
+
+## ⚡ Setup & Development
+
+1.  **Clone & Install**
+    ```bash
+    git clone https://github.com/your-username/zola.git
+    cd zola
+    npm install
+    ```
+
+2.  **Environment Variables**
+    Create a `.env` file with your Supabase credentials:
+    ```env
+    VITE_SUPABASE_URL=your_project_url
+    VITE_SUPABASE_ANON_KEY=your_anon_key
+    ```
+
+3.  **Run Locally**
+    ```bash
+    npm run dev
+    ```
+    *Note: To test native sharing on mobile, use a tunnel like `ngrok` or `localtunnel` as `localhost` is treated as insecure context by mobile browsers.*
+
+4.  **Build**
+    ```bash
+    npm run build
+    ```
+
+## 🌌 Performance Optimizations
+
+*   **Logic Separation:** Heavy background animations (`StarBackground`, `Nebula`) are decoupled from the main `Sky` component to prevent re-renders during timer ticks or interaction.
+*   **CSS Composition:** Complex animations use `transform` and `opacity` with `will-change` hints to leverage the GPU compositor.
+*   **Animation Pausing:** Global logic pauses expensive background rendering when modals are open to conserve battery on mobile devices.
+
+---
+
+*Built with ✨ for the New Year.*
